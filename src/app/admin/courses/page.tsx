@@ -12,11 +12,12 @@ interface Course {
   category: 'Beginner' | 'Intermediate' | 'Advanced'
   thumbnail: string; color: string; status: 'active' | 'archived'
   students: number; rating: number; totalLectures: number; duration: string; createdAt: string
+  isFree?: boolean; price?: number
 }
 
 const COLORS = ['#00e5ff', '#a78bfa', '#f5a623', '#ff6b35', '#4ade80', '#f472b6']
 const CATS = ['Beginner', 'Intermediate', 'Advanced'] as const
-const BLANK = (): Omit<Course, '_id'> => ({ title: '', description: '', category: 'Beginner', thumbnail: '', color: '#00e5ff', status: 'active', students: 0, rating: 0, totalLectures: 0, duration: '', createdAt: new Date().toISOString().split('T')[0] })
+const BLANK = (): Omit<Course, '_id'> => ({ title: '', description: '', category: 'Beginner', thumbnail: '', color: '#00e5ff', status: 'active', students: 0, rating: 0, totalLectures: 0, duration: '', createdAt: new Date().toISOString().split('T')[0], isFree: true, price: 0 })
 const CAT_COLORS: Record<string, string> = { Beginner: '#00e5ff', Intermediate: '#f5a623', Advanced: '#a78bfa' }
 
 export default function AdminCoursesPage() {
@@ -129,6 +130,11 @@ export default function AdminCoursesPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '99px', background: `${CAT_COLORS[c.category]}18`, color: CAT_COLORS[c.category], border: `1px solid ${CAT_COLORS[c.category]}40`, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{c.category}</span>
                 {c.status === 'archived' && <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.1)' }}>Archived</span>}
+                {c.isFree ? (
+                  <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)' }}>Free</span>
+                ) : (
+                  <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '99px', background: 'rgba(245,166,35,0.15)', color: '#f5a623', border: '1px solid rgba(245,166,35,0.3)' }}>₹{c.price}</span>
+                )}
                 {c.rating > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Star size={11} style={{ color: '#f5a623' }} fill="#f5a623" /><span style={{ fontSize: '12px', fontWeight: 700, color: '#f5a623' }}>{c.rating}</span></div>}
               </div>
               <div>
@@ -184,6 +190,15 @@ export default function AdminCoursesPage() {
                     </select>
                   </div>
                   <div><label style={LS}>Duration</label><input value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} placeholder="e.g. 12 hrs" style={S} /></div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <label style={{ ...LS, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, marginTop: '8px' }}>
+                    <input type="checkbox" checked={form.isFree !== false} onChange={e => setForm(f => ({ ...f, isFree: e.target.checked, price: e.target.checked ? 0 : f.price }))} style={{ accentColor: 'var(--accent-gold)', width: '16px', height: '16px' }} />
+                    Is Free Course?
+                  </label>
+                  {form.isFree === false && (
+                    <div><label style={LS}>Price (₹)</label><input type="number" value={form.price || 0} onChange={e => setForm(f => ({ ...f, price: Number(e.target.value) }))} min={0} style={S} placeholder="Amount in INR" /></div>
+                  )}
                 </div>
                 <div>
                   <label style={LS}>Accent Color</label>

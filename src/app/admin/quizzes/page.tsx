@@ -8,6 +8,7 @@ interface Question { id: string; text: string; marks: number; options: Option[] 
 interface Quiz {
   _id: string; title: string; timer: number; lessonId: string;
   questions: Question[]; type: 'quiz' | 'lecture'
+  isFree?: boolean; price?: number;
 }
 
 const BLANK_QUESTION = (): Question => ({
@@ -27,6 +28,8 @@ export default function QuizzesPage() {
   const [title, setTitle] = useState('')
   const [timer, setTimer] = useState(15)
   const [lessonId, setLessonId] = useState('')
+  const [isFree, setIsFree] = useState(true)
+  const [price, setPrice] = useState(0)
   const [questions, setQuestions] = useState<Question[]>([BLANK_QUESTION()])
   const [saving, setSaving] = useState(false)
 
@@ -34,8 +37,8 @@ export default function QuizzesPage() {
   useEffect(() => { load() }, [])
 
   const openBuilder = (q?: Quiz) => {
-    if (q) { setEditQuiz(q); setTitle(q.title); setTimer(q.timer); setLessonId(q.lessonId); setQuizType(q.type); setQuestions(q.questions.length ? q.questions : [BLANK_QUESTION()]) }
-    else { setEditQuiz(null); setTitle(''); setTimer(15); setLessonId(''); setQuizType('quiz'); setQuestions([BLANK_QUESTION()]) }
+    if (q) { setEditQuiz(q); setTitle(q.title); setTimer(q.timer); setLessonId(q.lessonId); setQuizType(q.type); setIsFree(q.isFree !== false); setPrice(q.price || 0); setQuestions(q.questions.length ? q.questions : [BLANK_QUESTION()]) }
+    else { setEditQuiz(null); setTitle(''); setTimer(15); setLessonId(''); setQuizType('quiz'); setIsFree(true); setPrice(0); setQuestions([BLANK_QUESTION()]) }
     setMode('builder')
   }
 
@@ -48,7 +51,7 @@ export default function QuizzesPage() {
   const save = async () => {
     if (!title.trim()) return
     setSaving(true)
-    const payload = { title, timer, lessonId, type: quizType, questions }
+    const payload = { title, timer, lessonId, type: quizType, isFree, price, questions }
     if (editQuiz) {
       const r = await fetch(`/api/quizzes/${editQuiz._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const updated = await r.json()
@@ -93,6 +96,15 @@ export default function QuizzesPage() {
             </select>
           </div>
           {quizType === 'lecture' && <div style={{ gridColumn: '1/-1' }}><label style={LS}>Linked Lesson ID</label><input value={lessonId} onChange={e => setLessonId(e.target.value)} placeholder="e.g. lesson-3" style={S} /></div>}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+          <label style={{ ...LS, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, marginTop: '8px' }}>
+            <input type="checkbox" checked={isFree} onChange={e => { setIsFree(e.target.checked); if (e.target.checked) setPrice(0) }} style={{ accentColor: '#a78bfa', width: '16px', height: '16px' }} />
+            Is Free Quiz?
+          </label>
+          {!isFree && (
+            <div><label style={LS}>Price (₹)</label><input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} min={0} style={S} placeholder="Amount in INR" /></div>
+          )}
         </div>
       </div>
 
@@ -165,6 +177,9 @@ export default function QuizzesPage() {
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-muted)' }}><Clock size={11} />{q.timer} min</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-muted)' }}><Award size={11} />{q.questions.length} questions</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: q.isFree !== false ? '#34d399' : '#f5a623', fontWeight: 700 }}>
+                  {q.isFree !== false ? 'Free' : `₹${q.price}`}
+                </span>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => openBuilder(q)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px' }}><Edit2 size={12} /> Edit</button>

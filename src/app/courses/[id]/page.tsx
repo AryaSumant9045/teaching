@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Script from 'next/script'
 import CourseVideoPlayer from '@/components/ui/CourseVideoPlayer'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -21,6 +22,7 @@ interface Lecture {
 interface Course {
   _id: string; title: string; description: string; category: string
   color: string; students: number; rating: number; totalLectures: number; duration: string
+  isFree?: boolean; price?: number
 }
 
 const MAT_ICONS: Record<string, React.ElementType> = {
@@ -47,19 +49,85 @@ export default function CourseDetailPage() {
   // Track completed lectures (in-session only)
   const [completed, setCompleted] = useState<Set<string>>(new Set())
 
+  // Purchases logic
+  const [isPurchased, setIsPurchased] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [paying, setPaying] = useState(false)
+
   useEffect(() => {
     Promise.all([
       fetch('/api/courses').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
       fetch(`/api/lectures?courseId=${id}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
-    ]).then(([courses, lecs]: [Course[], Lecture[]]) => {
+      fetch(`/api/purchases/check?resourceId=${id}`).then(r => r.json().catch(() => ({ purchased: false })))
+    ]).then(([courses, lecs, purchaseData]: [Course[], Lecture[], any]) => {
       const found = Array.isArray(courses) ? courses.find(c => c._id === id) ?? null : null
       setCourse(found)
       const sorted = Array.isArray(lecs) ? lecs.sort((a, b) => a.order - b.order) : []
       setLectures(sorted)
       if (sorted.length > 0) setActiveLec(sorted[0])
+      
+      setIsPurchased(purchaseData?.purchased || false)
+      setUserId(purchaseData?.userId || null)
+      
       setLoading(false)
     }).catch(e => { setError(String(e)); setLoading(false) })
   }, [id])
+
+  const isLockedCourse = course && course.isFree === false && !isPurchased;
+
+  const handlePay = async () => {
+    if (!course || !course.price || !userId) {
+      if (!userId) alert('Please log in first to purchase.');
+      return;
+    }
+    setPaying(true);
+    try {
+      const r = await fetch('/api/razorpay/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: course.price, resourceId: course._id, resourceType: 'course' })
+      });
+      const data = await r.json();
+      if (!data.order) throw new Error(data.error || 'Order creation failed');
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: course.price * 100,
+        currency: 'INR',
+        name: 'SanskritAI',
+        description: `Purchase ${course.title}`,
+        order_id: data.order.id,
+        handler: async function (response: any) {
+          const verifyRes = await fetch('/api/razorpay/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              userId,
+              resourceId: course._id,
+              resourceType: 'course',
+              amount: course.price
+            })
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.success) {
+            setIsPurchased(true);
+          }
+        },
+        theme: { color: course.color || '#ff6b35' }
+      };
+
+      const rzp1 = new (window as any).Razorpay(options);
+      rzp1.open();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to initialize payment.');
+    } finally {
+      setPaying(false);
+    }
+  };
 
   const selectLecture = (lec: Lecture) => {
     setActiveLec(lec)
@@ -107,6 +175,7 @@ export default function CourseDetailPage() {
 
   return (
     <div style={{ background: 'var(--bg-deep)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
       {/* ── TOP NAV BAR ── */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, padding: '0 20px', height: '64px', display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(6,9,20,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
@@ -202,7 +271,7 @@ export default function CourseDetailPage() {
                 {lectures.map((lec, i) => {
                   const isActive = activeLec?._id === lec._id
                   const isDone = completed.has(lec._id)
-                  const isLocked = false // !lec.isFree && i >= 3
+                  const isLocked = isLockedCourse && !lec.isFree // Lock lectures if course is paid and unpurchased
                   const isExpanded = expandedLec === lec._id
 
                   return (
@@ -306,7 +375,20 @@ export default function CourseDetailPage() {
 
               {/* Video Player */}
               <div style={{ borderRadius: '16px', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: `1px solid ${course.color}30`, boxShadow: `0 0 50px ${course.color}18`, marginBottom: '24px' }}>
-                {activeLec.videoUrl ? (
+                {isLockedCourse && !activeLec.isFree ? (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,22,48,0.95)', gap: '14px' }}>
+                    <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: `${course.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={24} style={{ color: course.color }} />
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0, textAlign: 'center' }}>
+                      This course requires a one-time purchase to unlock full access.<br />
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', display: 'block', marginTop: '6px' }}>₹{course.price}</span>
+                    </p>
+                    <button onClick={handlePay} disabled={paying} style={{ padding: '10px 24px', borderRadius: '10px', background: `linear-gradient(135deg, ${course.color}, ${course.color}aa)`, color: '#0a0a0a', fontWeight: 800, fontSize: '14px', border: 'none', cursor: 'pointer', marginTop: '4px' }}>
+                      {paying ? 'Processing...' : `Buy Course for ₹${course.price}`}
+                    </button>
+                  </div>
+                ) : activeLec.videoUrl ? (
                   <CourseVideoPlayer videoUrl={activeLec.videoUrl} title={activeLec.title} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,22,48,0.95)', gap: '14px' }}>

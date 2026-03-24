@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import {
-  LayoutDashboard, BookOpen, Users, Brain, FileQuestion, LogOut, Shield
+  LayoutDashboard, BookOpen, Users, Brain, FileQuestion, LogOut, Shield, CreditCard
 } from 'lucide-react'
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/admin/students', label: 'Students', icon: Users, color: 'var(--accent-cyan)' },
   { href: '/admin/quizzes', label: 'Quiz Builder', icon: Brain, color: '#a78bfa' },
   { href: '/admin/pyq', label: 'PYQ Manager', icon: FileQuestion, color: 'var(--accent-orange)' },
+  { href: '/admin/payments', label: 'Payment Manager', icon: CreditCard, color: '#10b981' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

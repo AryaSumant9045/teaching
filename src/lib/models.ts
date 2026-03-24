@@ -13,6 +13,8 @@ export interface ICourse {
   rating: number
   totalLectures: number
   duration: string
+  isFree?: boolean
+  price?: number
   createdAt: string
 }
 
@@ -27,6 +29,8 @@ const CourseSchema = new Schema<ICourse>({
   rating: { type: Number, default: 0 },
   totalLectures: { type: Number, default: 0 },
   duration: { type: String, default: '0 hrs' },
+  isFree: { type: Boolean, default: true },
+  price: { type: Number, default: 0 },
   createdAt: { type: String, default: () => new Date().toISOString().split('T')[0] },
 }, { versionKey: false })
 
@@ -102,6 +106,8 @@ export interface IQuiz {
   timer: number
   lessonId: string
   type: 'quiz' | 'lecture'
+  isFree?: boolean
+  price?: number
   questions: Array<{
     id: string; text: string; marks: number;
     options: Array<{ text: string; isCorrect: boolean }>
@@ -113,6 +119,8 @@ const QuizSchema = new Schema<IQuiz>({
   timer: { type: Number, default: 15 },
   lessonId: { type: String, default: '' },
   type: { type: String, enum: ['quiz', 'lecture'], default: 'quiz' },
+  isFree: { type: Boolean, default: true },
+  price: { type: Number, default: 0 },
   questions: [{
     id: String, text: String, marks: Number,
     options: [{ text: String, isCorrect: Boolean }],
@@ -139,6 +147,30 @@ const PYQSchema = new Schema<IPYQ>({
   addedAt: { type: String, default: () => new Date().toISOString().split('T')[0] },
 }, { versionKey: false })
 
+// ── Purchase ───────────────────────────────────────────────
+export interface IPurchase {
+  _id?: string
+  userId: string
+  resourceId: string
+  resourceType: 'course' | 'quiz'
+  amount: number
+  orderId: string
+  paymentId?: string
+  status: 'created' | 'completed' | 'failed'
+  createdAt: string
+}
+
+const PurchaseSchema = new Schema<IPurchase>({
+  userId: { type: String, required: true, index: true },
+  resourceId: { type: String, required: true, index: true },
+  resourceType: { type: String, enum: ['course', 'quiz'], required: true },
+  amount: { type: Number, required: true },
+  orderId: { type: String, required: true, unique: true },
+  paymentId: { type: String },
+  status: { type: String, enum: ['created', 'completed', 'failed'], default: 'created' },
+  createdAt: { type: String, default: () => new Date().toISOString() },
+}, { versionKey: false })
+
 // ── Model Exports (safe for Next.js hot-reload) ───────────
 function getModel<T>(name: string, schema: Schema): Model<T> {
   return (mongoose.models[name] as Model<T>) ?? mongoose.model<T>(name, schema)
@@ -149,3 +181,4 @@ export const Lecture = () => getModel<ILecture>('Lecture', LectureSchema)
 export const Student = () => getModel<IStudent>('Student', StudentSchema)
 export const Quiz = () => getModel<IQuiz>('Quiz', QuizSchema)
 export const PYQ = () => getModel<IPYQ>('PYQ', PYQSchema)
+export const Purchase = () => getModel<IPurchase>('Purchase', PurchaseSchema)
