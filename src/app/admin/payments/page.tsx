@@ -27,17 +27,17 @@ export default function AdminPaymentsPage() {
   const markFree = async (id: string, type: 'course' | 'quiz') => {
     const url = type === 'course' ? `/api/courses/${id}` : `/api/quizzes/${id}`
     await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isFree: true, price: 0 }) })
-    if (type === 'course') setCourses(cs => cs.filter(c => c._id !== id))
-    else setQuizzes(qs => qs.filter(q => q._id !== id))
+    if (type === 'course') setCourses(cs => cs.map(c => c._id === id ? { ...c, isFree: true, price: 0 } : c))
+    else setQuizzes(qs => qs.map(q => q._id === id ? { ...q, isFree: true, price: 0 } : q))
   }
 
   const savePrice = async () => {
     if (!editingPrice) return
     const { id, type, val } = editingPrice
     const url = type === 'course' ? `/api/courses/${id}` : `/api/quizzes/${id}`
-    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price: val }) })
-    if (type === 'course') setCourses(cs => cs.map(c => c._id === id ? { ...c, price: val } : c))
-    else setQuizzes(qs => qs.map(q => q._id === id ? { ...q, price: val } : q))
+    await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ price: val, isFree: false }) })
+    if (type === 'course') setCourses(cs => cs.map(c => c._id === id ? { ...c, price: val, isFree: false } : c))
+    else setQuizzes(qs => qs.map(q => q._id === id ? { ...q, price: val, isFree: false } : q))
     setEditingPrice(null)
   }
 
@@ -148,9 +148,19 @@ export default function AdminPaymentsPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '100%', justifyContent: 'flex-start', background: 'rgba(0,0,0,0.2)', padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase' }}>Free</span>
-                    <div style={{ flex: 1 }} />
-                    <button onClick={() => setEditingPrice({ id: c._id, type: 'course', val: 999 })} style={{ padding: '8px 16px', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontSize: '13px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16,185,129,0.1)' }}>Make Paid</button>
+                    {editingPrice?.id === c._id ? (
+                      <>
+                        <input type="number" min={0} value={editingPrice.val} onChange={e => setEditingPrice(ep => ep ? { ...ep, val: Number(e.target.value) } : ep)} style={{ width: '80px', padding: '6px 10px', borderRadius: '8px', border: '1px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#fff', fontSize: '13px', outline: 'none' }} autoFocus />
+                        <button onClick={savePrice} title="Save" style={{ padding: '7px', borderRadius: '8px', border: '1px solid #10b981', background: 'rgba(16,185,129,0.15)', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}><CheckCircle size={14} /> Save</button>
+                        <button onClick={() => setEditingPrice(null)} title="Cancel" style={{ padding: '7px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}><X size={14} /> Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase' }}>Free</span>
+                        <div style={{ flex: 1 }} />
+                        <button onClick={() => setEditingPrice({ id: c._id, type: 'course', val: 999 })} style={{ padding: '8px 16px', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontSize: '13px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16,185,129,0.1)' }}>Make Paid</button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -190,9 +200,19 @@ export default function AdminPaymentsPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', width: '100%', justifyContent: 'flex-start', background: 'rgba(0,0,0,0.2)', padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase' }}>Free</span>
-                    <div style={{ flex: 1 }} />
-                    <button onClick={() => setEditingPrice({ id: q._id, type: 'quiz', val: 99 })} style={{ padding: '8px 16px', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontSize: '13px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16,185,129,0.1)' }}>Make Paid</button>
+                    {editingPrice?.id === q._id ? (
+                      <>
+                        <input type="number" min={0} value={editingPrice.val} onChange={e => setEditingPrice(ep => ep ? { ...ep, val: Number(e.target.value) } : ep)} style={{ width: '80px', padding: '6px 10px', borderRadius: '8px', border: '1px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#fff', fontSize: '13px', outline: 'none' }} autoFocus />
+                        <button onClick={savePrice} title="Save" style={{ padding: '7px', borderRadius: '8px', border: '1px solid #10b981', background: 'rgba(16,185,129,0.15)', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}><CheckCircle size={14} /> Save</button>
+                        <button onClick={() => setEditingPrice(null)} title="Cancel" style={{ padding: '7px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}><X size={14} /> Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase' }}>Free</span>
+                        <div style={{ flex: 1 }} />
+                        <button onClick={() => setEditingPrice({ id: q._id, type: 'quiz', val: 99 })} style={{ padding: '8px 16px', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontSize: '13px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16,185,129,0.1)' }}>Make Paid</button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

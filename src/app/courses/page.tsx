@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -27,24 +28,26 @@ export default function CoursesListPage() {
   
   // Purchases logic
   const [purchasedIds, setPurchasedIds] = useState<string[]>([])
-  const [userId, setUserId] = useState<string | null>(null)
+  // Remove userId state, use session instead
   const [payingFor, setPayingFor] = useState<string | null>(null)
 
+  const { data: session } = useSession();
   useEffect(() => {
-    Promise.all([
-      fetch('/api/courses').then(r => {
+    fetch('/api/courses')
+      .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
-      }),
-      fetch('/api/purchases/user').then(r => r.json().catch(() => ({ purchasedResourceIds: [] })))
-    ])
-    .then(([coursesData, userPurchases]) => {
-      setCourses(Array.isArray(coursesData) ? coursesData.filter(c => c.status === 'active') : [])
-      setPurchasedIds(userPurchases.purchasedResourceIds || [])
-      setUserId(userPurchases.userId || null)
-      setLoading(false)
-    })
-    .catch(e => { setError(String(e)); setLoading(false) })
+      })
+      .then(coursesData => {
+        setCourses(Array.isArray(coursesData) ? coursesData.filter(c => c.status === 'active') : [])
+        setLoading(false)
+      })
+      .catch(e => { 
+        console.error('Error fetching data:', e);
+        setError(String(e)); 
+        setLoading(false);
+      });
+    // If you want to fetch purchases, do it here, but do not use it for login check
   }, [])
 
   const filtered = courses.filter(c => {
@@ -53,20 +56,23 @@ export default function CoursesListPage() {
     return cat && q
   })
 
+  const userId = session?.user?.id;
   const handlePay = async (e: React.MouseEvent, course: Course) => {
-    e.preventDefault() // prevent Link navigation
-    if (!userId) return alert('Please log in first to purchase a course.')
-    if (!course.price) return
-    
-    setPayingFor(course._id)
+    e.preventDefault();
+    if (!userId) {
+      alert('Please log in first to purchase a course.');
+      return;
+    }
+    if (!course.price) return;
+    setPayingFor(course._id);
     try {
       const r = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: course.price, resourceId: course._id, resourceType: 'course' })
-      })
-      const data = await r.json()
-      if (!data.order) throw new Error(data.error || 'Order creation failed')
+      });
+      const data = await r.json();
+      if (!data.order) throw new Error(data.error || 'Order creation failed');
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -88,26 +94,26 @@ export default function CoursesListPage() {
               resourceType: 'course',
               amount: course.price
             })
-          })
-          const verifyData = await verifyRes.json()
+          });
+          const verifyData = await verifyRes.json();
           if (verifyData.success) {
-            window.location.href = `/courses/${course._id}` // Redirect to course directly
+            window.location.href = `/courses/${course._id}`;
           } else {
-            alert('Payment verification failed.')
+            alert('Payment verification failed.');
           }
         },
         theme: { color: course.color || '#ff6b35' }
-      }
+      };
 
-      const rzp1 = new (window as unknown as { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay(options)
-      rzp1.open()
+      const rzp1 = new (window as unknown as { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay(options);
+      rzp1.open();
     } catch (err) {
-      console.error(err)
-      alert('Failed to initialize payment.')
+      console.error(err);
+      alert('Failed to initialize payment.');
     } finally {
-      setPayingFor(null)
+      setPayingFor(null);
     }
-  }
+  };
 
   return (
     <div style={{ background: 'var(--bg-deep)', minHeight: '100vh' }}>

@@ -28,6 +28,7 @@ export default {
   },
   callbacks: {
     jwt({ token, user }) {
+      console.log('JWT Callback - Token:', token, 'User:', user);
       if (user?.email && ADMIN_EMAILS.includes(user.email)) {
         token.role = "admin"
       } else if (user) {
@@ -35,9 +36,11 @@ export default {
       }
       return token
     },
-    session({ session, token }) {
+    session({ session, token, user }) {
+      console.log('Session Callback - Session:', session, 'Token:', token);
       if (session.user) {
-        session.user.role = token.role as string
+        session.user.role = token.role as string;
+        session.user.id = token.sub || token.id || user?.id;
       }
       return session
     },
