@@ -287,7 +287,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 items-center" style={{ gap: '4rem' }}>
             {/* Flashcard preview */}
-            <GlassCard hover glow="gold" className="min-h-[280px] flex flex-col items-center justify-center text-center">
+            <GlassCard hover glow="gold" className="min-h-[280px] flex flex-col items-center justify-center text-center md:ml-12 md:mr-8">
               <p className="badge badge-gold mb-6 text-xs">Lesson 3 · Nouns</p>
               <p className="devanagari text-6xl mb-4 text-glow-gold" style={{ color: 'var(--accent-gold)' }}>
                 नमस्ते
@@ -339,7 +339,7 @@ export default function HomePage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           className="w-full max-w-4xl mx-auto glass text-center py-20 px-8 flex flex-col items-center justify-center relative overflow-hidden"
-          style={{ borderColor: 'rgba(245,166,35,0.3)', boxShadow: 'var(--glow-gold)' }}
+          style={{ borderColor: 'rgba(245,166,35,0.3)', boxShadow: 'var(--glow-gold)', padding: '40px' }}
         >
           <p className="devanagari text-3xl mb-4" style={{ color: 'var(--accent-gold)' }}>
             अथ योगानुशासनम्
@@ -350,6 +350,9 @@ export default function HomePage() {
           <h2 className="text-4xl font-bold mb-4">Your Journey Begins Now</h2>
           <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>
             Join 50,000+ learners on the path to mastering the language of the Vedas.
+          </p>
+          <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
+            <em>Padidin</em>
           </p>
           <Link href="/register" className="btn-primary text-lg px-10 py-4">
             <Zap size={20} />
