@@ -30,7 +30,7 @@ export default function QuizDetailPage() {
   useEffect(() => {
     Promise.all([
       fetch('/api/quizzes').then(r => r.json()), // or fetch `/api/quizzes/${id}` if implemented for GET
-      fetch(`/api/purchases/check?resourceId=${id}`).then(r => r.json().catch(() => ({ purchased: false })))
+      fetch(`/api/purchases/check?resourceId=${id}&resourceType=quiz`).then(r => r.json().catch(() => ({ purchased: false })))
     ]).then(([quizzes, purchaseData]: [Quiz[], any]) => {
       const found = Array.isArray(quizzes) ? quizzes.find(q => q._id === id) ?? null : null
       setQuiz(found)

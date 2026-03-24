@@ -1,12 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { connectDB } from '@/lib/mongodb'
-import { Purchase } from '@/lib/models'
+import { Purchase, Student } from '@/lib/models'
+import { auth } from '@/auth'
+import { User } from '@/lib/models/User'
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth()
+    if (!session || !session.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     await connectDB()
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, resourceId, resourceType, amount } = await req.json()
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, resourceId, resourceType, amount } = await req.json()
+
+    const student = await Student().findOne({ email: session.user.email }).lean<{ _id: { toString: () => string } } | null>()
+    const user = !student
+      ? await User.findOne({ email: session.user.email }).lean<{ _id: { toString: () => string } } | null>()
+      : null
+    const resolvedUserId = student?._id?.toString() || user?._id?.toString() || null
+    if (!resolvedUserId) {
+      return NextResponse.json({ error: 'User account not found' }, { status: 404 })
+    }
 
     const secret = process.env.RAZORPAY_KEY_SECRET || ''
 
@@ -22,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     // Payment is verified, save to database
     const newPurchase = await Purchase().create({
-      userId,
+      userId: resolvedUserId,
       resourceId,
       resourceType,
       amount,

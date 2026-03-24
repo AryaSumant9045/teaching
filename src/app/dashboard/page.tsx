@@ -1,12 +1,13 @@
 'use client'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import Navbar from '@/components/shared/Navbar'
 import GlassCard from '@/components/ui/GlassCard'
 import ProgressChart from '@/components/features/ProgressChart'
 import {
   Flame, BookOpen, Mic, BarChart2, Target, Trophy,
-  TrendingUp, Zap, Star, CheckCircle2, ChevronRight, Brain
+  TrendingUp, Zap, Star, CheckCircle2, ChevronRight, Brain, ShoppingCart
 } from 'lucide-react'
 
 const streak = 14
@@ -36,8 +37,62 @@ const achievements = [
   { label: 'Pronunciation+', icon: '🎤', earned: false },
 ]
 
+interface Course {
+  _id: string
+  title: string
+  description: string
+  category: 'Beginner' | 'Intermediate' | 'Advanced'
+  color: string
+  isFree?: boolean
+  price?: number
+}
+
 export default function DashboardPage() {
   const xpToNext = 3200
+  const [boughtCourses, setBoughtCourses] = useState<Course[]>([])
+  const [loadingBoughtCourses, setLoadingBoughtCourses] = useState(true)
+
+  useEffect(() => {
+    const loadBoughtCourses = async () => {
+      try {
+        const purchasesRes = await fetch('/api/purchases/user', { cache: 'no-store' })
+        if (!purchasesRes.ok) {
+          setBoughtCourses([])
+          return
+        }
+
+        const purchasesData: { purchasedResourceIds?: string[] } = await purchasesRes.json()
+        const purchasedIds = Array.isArray(purchasesData.purchasedResourceIds)
+          ? purchasesData.purchasedResourceIds.map((id: unknown) => String(id))
+          : []
+
+        if (purchasedIds.length === 0) {
+          setBoughtCourses([])
+          return
+        }
+
+        const coursesRes = await fetch('/api/courses', { cache: 'no-store' })
+        if (!coursesRes.ok) {
+          setBoughtCourses([])
+          return
+        }
+
+        const allCourses: Course[] = await coursesRes.json()
+        const purchasedSet = new Set(purchasedIds)
+        const filteredBoughtCourses = Array.isArray(allCourses)
+          ? allCourses.filter(course => purchasedSet.has(String(course._id)))
+          : []
+
+        setBoughtCourses(filteredBoughtCourses)
+      } catch {
+        setBoughtCourses([])
+      } finally {
+        setLoadingBoughtCourses(false)
+      }
+    }
+
+    loadBoughtCourses()
+  }, [])
 
   return (
     <div className="relative min-h-screen">
@@ -75,6 +130,61 @@ export default function DashboardPage() {
 
         {/* ── BENTO GRID ───────────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4" style={{ gap: '2.5rem' }}>
+
+          {/* Bought courses — top, spans full */}
+          <GlassCard delay={0.02} className="md:col-span-2 xl:col-span-4">
+            <div style={{ padding: '0.5rem 0.5rem 0.75rem', marginBottom: '0.25rem' }}>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart size={18} style={{ color: 'var(--accent-cyan)' }} />
+                  <h3 className="font-semibold">Bought Courses</h3>
+                </div>
+                <Link href="/courses" className="text-sm flex items-center gap-1" style={{ color: 'var(--accent-cyan)' }}>
+                  Browse courses <ChevronRight size={14} />
+                </Link>
+              </div>
+
+              {loadingBoughtCourses ? (
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  Loading your purchased courses...
+                </p>
+              ) : boughtCourses.length === 0 ? (
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  You have not purchased any course yet.
+                </p>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {boughtCourses.map(course => (
+                    <Link key={course._id} href={`/courses/${course._id}`}>
+                      <motion.div
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        className="rounded-xl p-4 transition-all duration-200 cursor-pointer"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)' }}
+                      >
+                        <span
+                          className="badge text-[10px] mb-3 inline-block"
+                          style={{
+                            background: `${course.color}22`,
+                            color: course.color,
+                            border: `1px solid ${course.color}55`,
+                          }}
+                        >
+                          {course.category}
+                        </span>
+                        <p className="font-semibold text-sm mb-1 leading-tight">{course.title}</p>
+                        <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                          {course.description || 'Continue your learning in this course.'}
+                        </p>
+                        <span className="text-xs font-semibold" style={{ color: 'var(--accent-cyan)' }}>
+                          Open Course <ChevronRight size={12} className="inline-block" />
+                        </span>
+                      </motion.div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </GlassCard>
 
           {/* Streak card */}
           <GlassCard delay={0.05} hover glow="orange" className="flex flex-col">
@@ -241,6 +351,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </GlassCard>
+
         </div>
       </div>
     </div>

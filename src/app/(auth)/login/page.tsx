@@ -7,7 +7,7 @@ import { signIn } from 'next-auth/react'
 
 export default function LoginPage() {
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-[#050B14]">
+    <div className="relative min-h-screen flex items-center justify-center space-x-0.5 p-8 overflow-hidden bg-[#050B14]">
       
       {/* Dynamic Cosmic Background Elements */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -73,51 +73,46 @@ export default function LoginPage() {
                   सुस्वागतम्
                 </p>
               </motion.div>
-              <h1 className="text-5xl font-black mb-6 tracking-tight text-white drop-shadow-lg">Welcome Back</h1>
-              <p className="text-xl text-gray-400 font-medium tracking-wide">
+              <h1 className="text-5xl font-black mb-10 tracking-tight text-white drop-shadow-lg">Welcome</h1>
+              <p className="text-xl text-gray-400 font-medium tracking-wide mb-8">
                 Continue your journey into the Vedas.
               </p>
             </div>
 
-            <div className="space-y-8 mb-16">
-              <button 
-                onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-                className="group relative w-full flex items-center justify-center gap-5 py-7 px-8 rounded-[1.5rem] font-bold text-xl transition-all duration-300 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_rgba(66,133,244,0.4)]"
-              >
-                <div className="absolute inset-0 h-12 mb-2 bg-white/5 group-hover:bg-white/15 transition-colors border border-white/10 group-hover:border-white/20 rounded-[1.5rem]" />
-                {/* Google Logo SVG */}
-                <svg className="w-8 h-12 z-10 drop-shadow-md" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-                <span className="z-10 text-white tracking-widest uppercase text-[17px]">Sign in with Google</span>
-              </button>
+            <div className="space-y-6 text-center">
+              <h1 className="text-3xl font-bold mb-10 tracking-tight text-yellow-500 drop-shadow-lg">सुस्वागतम्</h1>
+              
 
-              <button 
-                onClick={() => signIn('credentials', { callbackUrl: '/dashboard' })}
-                className="group w-full flex items-center justify-center gap-4 py-7 px-8 rounded-[1.5rem] font-bold text-xl transition-all overflow-hidden border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/15 hover:border-cyan-500/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_0_50px_rgba(0,229,255,0.5)] tracking-widest uppercase text-[17px]"
-              >
-                Explore as Guest <ArrowRight size={28} className="transition-transform group-hover:translate-x-3" />
-              </button>
-            </div>
+              <div className="flex flex-col items-center">
+                <button 
+                  onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+                  className="group relative w-auto max-w-[95%] p-1.5 m-1.5 flex items-center justify-between gap-3 py-8 px-10 rounded-[1.5rem] font-bold text-xl transition-all duration-300 overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_rgba(66,133,244,0.4)]"
+                >
+                  <div className="absolute inset-0 h-12 mb-2 bg-white/5 group-hover:bg-white/15 transition-colors border border-white/10 group-hover:border-white/20 rounded-[1.5rem]" />
+                  <svg className="w-8 h-12 z-10 drop-shadow-md" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                  </svg>
+                  <span className="z-10 text-white tracking-widest uppercase text-[17px]">Sign in with Google</span>
+                </button>
 
-            <div className="relative flex items-center justify-center my-16">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10"></div>
+                <button 
+                  onClick={() => signIn('credentials', { callbackUrl: '/dashboard' })}
+                  className="group w-full flex items-center justify-center gap-4 py-8 px-10 rounded-[1.5rem] font-bold text-xl transition-all overflow-hidden border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/15 hover:border-cyan-500/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_0_50px_rgba(0,229,255,0.5)] tracking-widest uppercase text-[17px]"
+                >
+                  Explore as Guest <ArrowRight size={28} className="transition-transform group-hover:translate-x-3" />
+                </button>
               </div>
-              <div className="relative px-10 bg-[#0B1224] text-base font-bold text-gray-500 uppercase tracking-[0.3em]">
+
+              <p className="text-lg text-gray-400 font-medium tracking-wide">
                 New Here?
-              </div>
+              </p>
+              <p className="text-lg text-gray-400 font-medium tracking-wide">
+                Don't have an account? <Link href="/register" className="text-cyan-400 hover:underline">Begin your journey</Link>
+              </p>
             </div>
-
-            <p className="text-center text-lg text-gray-400 font-medium">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="font-black text-orange-400 hover:text-orange-300 transition-colors drop-shadow-[0_0_15px_rgba(245,166,35,0.7)] ml-3">
-                Begin your journey
-              </Link>
-            </p>
           </GlassCard>
         </div>
       </motion.div>

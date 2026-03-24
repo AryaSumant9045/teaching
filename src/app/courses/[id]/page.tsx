@@ -58,7 +58,7 @@ export default function CourseDetailPage() {
     Promise.all([
       fetch('/api/courses').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
       fetch(`/api/lectures?courseId=${id}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
-      fetch(`/api/purchases/check?resourceId=${id}`).then(r => r.json().catch(() => ({ purchased: false })))
+      fetch(`/api/purchases/check?resourceId=${id}&resourceType=course`).then(r => r.json().catch(() => ({ purchased: false })))
     ]).then(([courses, lecs, purchaseData]: [Course[], Lecture[], any]) => {
       const found = Array.isArray(courses) ? courses.find(c => c._id === id) ?? null : null
       setCourse(found)

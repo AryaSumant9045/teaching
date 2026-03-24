@@ -47,8 +47,19 @@ export default function CoursesListPage() {
         setError(String(e)); 
         setLoading(false);
       });
-    // If you want to fetch purchases, do it here, but do not use it for login check
   }, [])
+
+  useEffect(() => {
+    fetch('/api/purchases/user')
+      .then(r => r.json().catch(() => ({ purchasedResourceIds: [] })))
+      .then(data => {
+        const normalizedIds = Array.isArray(data?.purchasedResourceIds)
+          ? data.purchasedResourceIds.map((id: unknown) => String(id))
+          : []
+        setPurchasedIds(normalizedIds)
+      })
+      .catch(() => setPurchasedIds([]))
+  }, [session?.user?.email])
 
   const filtered = courses.filter(c => {
     const cat = active === 'All' || c.category === active
@@ -56,10 +67,9 @@ export default function CoursesListPage() {
     return cat && q
   })
 
-  const userId = session?.user?.id;
   const handlePay = async (e: React.MouseEvent, course: Course) => {
     e.preventDefault();
-    if (!userId) {
+    if (!session?.user?.email) {
       alert('Please log in first to purchase a course.');
       return;
     }
@@ -89,7 +99,6 @@ export default function CoursesListPage() {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              userId,
               resourceId: course._id,
               resourceType: 'course',
               amount: course.price
@@ -97,6 +106,10 @@ export default function CoursesListPage() {
           });
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
+            setPurchasedIds(prev => {
+              const normalizedId = String(course._id)
+              return prev.includes(normalizedId) ? prev : [...prev, normalizedId]
+            });
             window.location.href = `/courses/${course._id}`;
           } else {
             alert('Payment verification failed.');
@@ -173,7 +186,7 @@ export default function CoursesListPage() {
         <div style={{ padding: '24px 48px 80px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: '20px' }}>
           {filtered.map((course, i) => {
             const isMonetized = course.isFree === false && course.price && course.price > 0
-            const isOwned = purchasedIds.includes(course._id)
+            const isOwned = purchasedIds.includes(String(course._id))
             const needsPurchase = isMonetized && !isOwned
 
             return (

@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   ],
   // Silence the turbopack warning
   turbopack: {},
+  experimental: {
+    appDir: true,
+  },
 };
 
 export default nextConfig;

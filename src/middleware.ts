@@ -12,6 +12,14 @@ export default auth((req) => {
 
   const { pathname } = req.nextUrl
 
+  // Backward-compatible redirects for old auth URLs.
+  if (pathname === '/auth/register') {
+    return NextResponse.redirect(new URL('/register', req.nextUrl))
+  }
+  if (pathname === '/auth/login') {
+    return NextResponse.redirect(new URL('/login', req.nextUrl))
+  }
+
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
   const isAdminPage = pathname.startsWith('/admin')
   const isStudentProtected =
