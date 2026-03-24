@@ -1,26 +1,235 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tiro+Devanagari+Hindi:ital@0;1&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* === Cyber-Vedic Color Palette === */
+  --bg-deep:        #060914;
+  --bg-mid:         #0c1225;
+  --bg-card:        rgba(14, 22, 48, 0.7);
+  --accent-gold:    #f5a623;
+  --accent-orange:  #ff6b35;
+  --accent-saffron: #ff9a3c;
+  --accent-cyan:    #00e5ff;
+  --accent-purple:  #7c3aed;
+  --text-primary:   #f0f4ff;
+  --text-secondary: #8899bb;
+  --text-muted:     #445577;
+  --border-glass:   rgba(245, 166, 35, 0.15);
+  --glow-gold:      0 0 20px rgba(245, 166, 35, 0.4), 0 0 60px rgba(245, 166, 35, 0.15);
+  --glow-orange:    0 0 20px rgba(255, 107, 53, 0.5), 0 0 60px rgba(255, 107, 53, 0.2);
+  --glow-cyan:      0 0 20px rgba(0, 229, 255, 0.4), 0 0 60px rgba(0, 229, 255, 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--accent-gold); border-radius: 3px; }
+
+/* === Sanskrit / Devanagari === */
+.devanagari {
+  font-family: 'Tiro Devanagari Hindi', 'Noto Sans Devanagari', serif;
+  font-size: 1.1em;
+  line-height: 1.8;
+}
+
+/* === Glassmorphism === */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+}
+
+.glass-hover {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.glass-hover:hover {
+  border-color: rgba(245, 166, 35, 0.4);
+  box-shadow: var(--glow-gold);
+  transform: translateY(-2px);
+}
+
+/* === Neon Glow Utility Classes === */
+.glow-gold   { box-shadow: var(--glow-gold); }
+.glow-orange { box-shadow: var(--glow-orange); }
+.glow-cyan   { box-shadow: var(--glow-cyan); }
+
+.text-glow-gold   { text-shadow: 0 0 12px rgba(245, 166, 35, 0.8), 0 0 30px rgba(245, 166, 35, 0.4); }
+.text-glow-orange { text-shadow: 0 0 12px rgba(255, 107, 53, 0.8), 0 0 30px rgba(255, 107, 53, 0.4); }
+
+/* === Gradient Text === */
+.gradient-text-gold {
+  background: linear-gradient(135deg, #f5a623, #ff6b35, #f5a623);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+.gradient-text-cosmic {
+  background: linear-gradient(135deg, #00e5ff, #7c3aed, #f5a623);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0%   50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* === Mandala Spin === */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; filter: blur(0px); }
+  50%       { opacity: 1;   filter: blur(2px); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+@keyframes particle-drift {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-100vh) translateX(20px) scale(0); opacity: 0; }
+}
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+.animate-spin-slow    { animation: spin-slow 20s linear infinite; }
+.animate-spin-reverse { animation: spin-reverse 30s linear infinite; }
+.animate-pulse-glow   { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-float        { animation: float 4s ease-in-out infinite; }
+.animate-flicker      { animation: flicker 2s ease-in-out infinite; }
+
+/* === Background starfield === */
+.starfield {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(124, 58, 237, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(245, 166, 35, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 50%);
+}
+
+/* === Bento Grid === */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+/* === Button Base === */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-gold));
+  color: #0a0a0a;
+  border: none;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.btn-primary:hover {
+  box-shadow: var(--glow-orange);
+  transform: translateY(-2px) scale(1.02);
+}
+.btn-primary:hover::before { opacity: 1; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 28px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-glass);
+  transition: all 0.3s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: var(--glow-gold);
+}
+
+/* === Progress bar === */
+.progress-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-gold));
+  box-shadow: 0 0 8px rgba(245,166,35,0.6);
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.badge-gold   { background: rgba(245,166,35,0.15); color: var(--accent-gold);   border: 1px solid rgba(245,166,35,0.3); }
+.badge-orange { background: rgba(255,107,53,0.15); color: var(--accent-orange); border: 1px solid rgba(255,107,53,0.3); }
+.badge-cyan   { background: rgba(0,229,255,0.1);   color: var(--accent-cyan);   border: 1px solid rgba(0,229,255,0.25); }

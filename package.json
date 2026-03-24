@@ -3,15 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "NODE_OPTIONS='--max-old-space-size=6144' next dev",
+    "build": "NODE_OPTIONS='--max-old-space-size=6144' next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@dytesdk/react-ui-kit": "^3.0.8",
+    "@dytesdk/react-web-core": "^3.1.11",
+    "@dytesdk/web-core": "^3.1.11",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.0.1",
+    "mongoose": "^9.3.2",
     "next": "16.2.1",
+    "next-auth": "^5.0.0-beta.30",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-is": "^19.2.4",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
