@@ -60,16 +60,25 @@ export default function AdminCoursesPage() {
   const saveCourse = async () => {
     if (!form.title.trim()) return
     setSaving(true)
-    if (editCourse) {
-      const r = await fetch(`/api/courses/${editCourse._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-      const updated = await r.json()
-      setCourses(cs => cs.map(c => c._id === editCourse._id ? updated : c))
-    } else {
-      const r = await fetch('/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-      const created = await r.json()
-      setCourses(cs => [created, ...cs])
+    try {
+      if (editCourse) {
+        const r = await fetch(`/api/courses/${editCourse._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+        if (!r.ok) throw new Error(`Server error: ${r.status}`)
+        const updated = await r.json()
+        setCourses(cs => cs.map(c => c._id === editCourse._id ? updated : c))
+      } else {
+        const r = await fetch('/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+        if (!r.ok) throw new Error(`Server error: ${r.status}`)
+        const created = await r.json()
+        setCourses(cs => [created, ...cs])
+      }
+      setShowModal(false)
+    } catch (err) {
+      console.error('Save course failed:', err)
+      alert('Failed to save course. Please try again.')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false); setShowModal(false)
   }
 
   const deleteCourse = async (id: string) => {

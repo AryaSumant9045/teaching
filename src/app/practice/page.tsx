@@ -280,9 +280,9 @@ export default function PracticePage() {
         </span>
       </button>
       
-      <div className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: '7rem', paddingBottom: '6rem', maxWidth: '100rem', marginLeft: 'auto', marginRight: 'auto' }}>
+      <div className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: '7rem', paddingBottom: '8rem', maxWidth: '90rem', marginLeft: 'auto', marginRight: 'auto' }}>
 
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '3.5rem' }}>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '4rem' }}>
           <div className="flex items-center gap-3 mb-4">
             <span className="badge badge-cyan" style={{ marginBottom: '0' }}>{t.practiceStudio}</span>
             <div className="flex items-center gap-2">
@@ -299,8 +299,8 @@ export default function PracticePage() {
         </motion.div>
 
         {/* ── PURCHASED QUIZZES SECTION ───────────────────────────── */}
-        <GlassCard delay={0.02} className="mb-12 gap-40">
-          <div className="p-6">
+        <GlassCard delay={0.02} style={{ marginBottom: '3.5rem' }}>
+          <div className="px-7 py-7">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Brain size={18} style={{ color: 'var(--accent-cyan)' }} />
@@ -355,8 +355,8 @@ export default function PracticePage() {
         </GlassCard>
 
         {/* ── PYQ SECTION ───────────────────────────── */}
-        <GlassCard delay={0.03} className="mb-12">
-          <div className="p-6">
+        <GlassCard delay={0.03} style={{ marginBottom: '3.5rem' }}>
+          <div className="px-7 py-7">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <FileQuestion size={18} style={{ color: 'var(--accent-gold)' }} />
@@ -380,11 +380,11 @@ export default function PracticePage() {
           </div>
         </GlassCard>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: '2.5rem' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: '3rem', marginBottom: '2rem' }}>
 
           {/* ── PRONUNCIATION GRADER ─── */}
-          <GlassCard delay={0.05} hover glow="orange" className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-5">
+          <GlassCard delay={0.05} hover glow="orange" className="lg:col-span-2 px-7 py-7">
+            <div className="flex items-center gap-2 mb-6">
               <Mic size={18} style={{ color: 'var(--accent-orange)' }} />
               <h2 className="font-semibold text-lg">{t.pronunciationGrader}</h2>
               <span className="badge badge-orange ml-auto text-xs">{t.aiPowered}</span>
@@ -502,8 +502,8 @@ export default function PracticePage() {
           </GlassCard>
 
           {/* ── RL RECOMMENDATIONS ─── */}
-          <GlassCard delay={0.1} hover className="flex flex-col">
-            <div className="flex items-center gap-2 mb-5">
+          <GlassCard delay={0.1} hover className="flex flex-col px-7 py-7">
+            <div className="flex items-center gap-2 mb-6">
               <BarChart2 size={18} style={{ color: 'var(--accent-cyan)' }} />
               <h2 className="font-semibold">{t.aiRecommendations}</h2>
             </div>
@@ -535,8 +535,8 @@ export default function PracticePage() {
           </GlassCard>
 
           {/* ── WRITING PRACTICE ─── */}
-          <GlassCard delay={0.2} className="lg:col-span-3">
-            <div className="flex items-center gap-2 mb-5">
+          <GlassCard delay={0.2} className="lg:col-span-3 px-7 py-7">
+            <div className="flex items-center gap-2 mb-6">
               <PenLine size={18} style={{ color: '#a78bfa' }} />
               <h2 className="font-semibold text-lg">{t.writingPractice}</h2>
               <span className="badge badge-cyan ml-auto text-xs">{t.traceLearn}</span>
