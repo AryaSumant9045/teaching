@@ -293,7 +293,7 @@ export default function PracticePage() {
         </motion.div>
 
         {/* ── PURCHASED QUIZZES SECTION ───────────────────────────── */}
-        <GlassCard delay={0.02} className="mb-12">
+        <GlassCard delay={0.02} className="mb-25 gap-24">
           <div className="p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
@@ -566,6 +566,23 @@ export default function PracticePage() {
             </motion.div>
           </GlassCard>
         </div>
+      </div>
+      
+      {/* AI Chat Test */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        width: '300px',
+        height: '200px',
+        background: 'red',
+        zIndex: 99999,
+        padding: '20px',
+        color: 'white',
+        borderRadius: '10px'
+      }}>
+        <strong>AI Chat Test</strong>
+        <p>If you see this red box, component is working!</p>
       </div>
     </div>
   )
