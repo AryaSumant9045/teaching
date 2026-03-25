@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import LiveClassStatus from '@/components/LiveClassStatus'
 import LiveClassSchedule from '@/components/student/LiveClassSchedule'
+import CourseVideoPlayer from '@/components/ui/CourseVideoPlayer'
 
 interface CourseMaterial { id: string; name: string; type: string; url: string }
 interface LiveClass { scheduledAt: string; meetingUrl: string; isLive: boolean; title: string }
@@ -427,13 +428,7 @@ export default function CourseDetailPage() {
                     </button>
                   </div>
                 ) : activeLec.videoUrl ? (
-                  <video 
-                    controls 
-                    style={{ width: '100%', height: '100%', borderRadius: '16px' }}
-                    src={activeLec.videoUrl}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
+                  <CourseVideoPlayer videoUrl={activeLec.videoUrl} title={activeLec.title} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,22,48,0.95)', gap: '14px' }}>
                     <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: `${course.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
