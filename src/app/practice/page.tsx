@@ -567,23 +567,6 @@ export default function PracticePage() {
           </GlassCard>
         </div>
       </div>
-      
-      {/* AI Chat Test */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        width: '300px',
-        height: '200px',
-        background: 'red',
-        zIndex: 99999,
-        padding: '20px',
-        color: 'white',
-        borderRadius: '10px'
-      }}>
-        <strong>AI Chat Test</strong>
-        <p>If you see this red box, component is working!</p>
-      </div>
     </div>
   )
 }

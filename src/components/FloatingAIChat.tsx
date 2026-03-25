@@ -6,8 +6,9 @@ import { askAI } from '@/lib/aiService'
 export default function FloatingAIChat() {
   const [isOpen, setIsOpen] = useState(false)
   const [message, setMessage] = useState('')
-  const [response, setResponse] = useState('नमस्ते! मैं Sutra-AI हूं। संस्कृत या UGC NET से संबंधित प्रश्न पूछें।')
+  const [response, setResponse] = useState('नमस्ते! मैं Sutra-AI हूं। संस्कृत भाषा, व्याकरण, साहित्य, और UGC NET/JRF परीक्षा से संबंधित प्रश्न पूछें।')
   const [loading, setLoading] = useState(false)
+  const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'assistant', content: string}>>([])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,13 +18,47 @@ export default function FloatingAIChat() {
     setMessage('')
     setLoading(true)
 
+    // Add user message to history
+    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }])
+
     try {
       const result = await askAI(userMsg, {
-        systemPrompt: 'You are Sutra-AI, a Sanskrit scholar. Answer in Hindi or English.'
+        systemPrompt: `You are Sutra-AI, a specialized Sanskrit scholar and competitive exam expert. 
+
+STRICT GUIDELINES:
+1. ONLY answer questions related to:
+   - Sanskrit language (grammar, literature, poetry, vyakaran, shiksha)
+   - UGC NET Sanskrit preparation
+   - JRF Sanskrit 
+   - State PGT/TGT Sanskrit exams
+   - Sanskrit competitive exams
+   - Vedic studies and ancient Indian knowledge
+   - Sanskrit teaching methodologies
+
+2. ABSOLUTELY FORBIDDEN:
+   - Political discussions
+   - Religious controversies
+   - Personal opinions on sensitive topics
+   - Non-academic conversations
+   - Jokes or casual chat
+   - Any topic outside Sanskrit/competitive exams
+
+3. RESPONSE FORMAT:
+   - Answer in Hindi or English as preferred by user
+   - Be precise and academic
+   - Focus on exam-relevant content
+   - If asked about forbidden topics, politely decline and redirect to Sanskrit studies
+
+If user asks inappropriate questions, respond: "मैं केवल संस्कृत और प्रतियोगीता परीक्षाओं से संबंधित प्रश्नों का उत्तर दे सकता हूँ। कृपया संस्कृत विषय से प्रश्न पूछें।"`
       })
+      
+      // Add assistant response to history
+      setChatHistory(prev => [...prev, { role: 'assistant', content: result }])
       setResponse(result)
     } catch (err) {
-      setResponse('क्षमा करें, त्रुटि हुई। कृपया पुनः प्रयास करें।')
+      const errorMsg = 'क्षमा करें, त्रुटि हुई। कृपया पुनः प्रयास करें।'
+      setChatHistory(prev => [...prev, { role: 'assistant', content: errorMsg }])
+      setResponse(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -116,10 +151,43 @@ export default function FloatingAIChat() {
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.5)' }}>
             <Loader size={16} className="animate-spin" />
-            <span>Sutra-AI सोच रहा है...</span>
+            <span>Sutra-AI संस्कृत उत्तर ढूंढ रहा है...</span>
           </div>
         ) : (
-          <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{response}</p>
+          <div>
+            {/* Display chat history */}
+            {chatHistory.map((msg, index) => (
+              <div key={index} style={{ marginBottom: '12px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                  marginBottom: '4px'
+                }}>
+                  <span style={{
+                    fontSize: '12px',
+                    color: 'rgba(255,255,255,0.6)',
+                    fontWeight: 500
+                  }}>
+                    {msg.role === 'user' ? 'आप:' : 'Sutra-AI:'}
+                  </span>
+                </div>
+                <div style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  background: msg.role === 'user' 
+                    ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1))'
+                    : 'rgba(255,255,255,0.05)',
+                  border: msg.role === 'user' 
+                    ? '1px solid rgba(245, 158, 11, 0.3)'
+                    : '1px solid rgba(255,255,255,0.1)',
+                  maxWidth: '100%',
+                  wordBreak: 'break-word'
+                }}>
+                  <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -137,7 +205,7 @@ export default function FloatingAIChat() {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="प्रश्न पूछें..."
+          placeholder="संस्कृत प्रश्न पूछें..."
           disabled={loading}
           style={{
             flex: 1,

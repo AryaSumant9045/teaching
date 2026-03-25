@@ -171,6 +171,50 @@ const PurchaseSchema = new Schema<IPurchase>({
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { versionKey: false })
 
+// ── Enrollment (Student-Course Link) ─────────────────────
+export interface IEnrollment {
+  _id?: string
+  userId: string
+  courseId: string
+  enrolledAt: string
+  status: 'active' | 'completed' | 'dropped'
+  progress: number
+}
+
+const EnrollmentSchema = new Schema<IEnrollment>({
+  userId: { type: String, required: true, index: true },
+  courseId: { type: String, required: true, index: true },
+  enrolledAt: { type: String, default: () => new Date().toISOString() },
+  status: { type: String, enum: ['active', 'completed', 'dropped'], default: 'active' },
+  progress: { type: Number, default: 0 },
+}, { versionKey: false })
+
+// ── LiveSession (Live Class Session) ───────────────────────
+export interface ILiveSession {
+  _id?: string
+  courseId: string
+  adminId: string
+  dyteMeetingId: string
+  dyteRoomName: string
+  status: 'active' | 'ended'
+  startedAt: string
+  endedAt?: string
+  title: string
+  description?: string
+}
+
+const LiveSessionSchema = new Schema<ILiveSession>({
+  courseId: { type: String, required: true, index: true },
+  adminId: { type: String, required: true },
+  dyteMeetingId: { type: String, required: true },
+  dyteRoomName: { type: String, required: true },
+  status: { type: String, enum: ['active', 'ended'], default: 'active' },
+  startedAt: { type: String, default: () => new Date().toISOString() },
+  endedAt: { type: String },
+  title: { type: String, default: 'Live Class' },
+  description: { type: String, default: '' },
+}, { versionKey: false })
+
 // ── Model Exports (safe for Next.js hot-reload) ───────────
 function getModel<T>(name: string, schema: Schema): Model<T> {
   return (mongoose.models[name] as Model<T>) ?? mongoose.model<T>(name, schema)
@@ -182,3 +226,5 @@ export const Student = () => getModel<IStudent>('Student', StudentSchema)
 export const Quiz = () => getModel<IQuiz>('Quiz', QuizSchema)
 export const PYQ = () => getModel<IPYQ>('PYQ', PYQSchema)
 export const Purchase = () => getModel<IPurchase>('Purchase', PurchaseSchema)
+export const Enrollment = () => getModel<IEnrollment>('Enrollment', EnrollmentSchema)
+export const LiveSession = () => getModel<ILiveSession>('LiveSession', LiveSessionSchema)

@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import Script from 'next/script'
 import CourseVideoPlayer from '@/components/ui/CourseVideoPlayer'
+import LiveClassStatus from '@/components/LiveClassStatus'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Clock, Users, Star, BookOpen, Lock, Play, FileText,
@@ -35,6 +37,7 @@ const MAT_COLORS: Record<string, string> = {
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { data: session } = useSession()
 
   const [course, setCourse] = useState<Course | null>(null)
   const [lectures, setLectures] = useState<Lecture[]>([])
@@ -264,6 +267,18 @@ export default function CourseDetailPage() {
                 <div style={{ marginTop: '8px', height: '2px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                   <div style={{ width: `${progressPct}%`, height: '100%', background: `linear-gradient(90deg, ${course.color}, ${course.color}88)`, transition: 'width 0.5s' }} />
                 </div>
+
+                {/* Live Class Status for Enrolled Students */}
+                {isPurchased && course && userId && (
+                  <div style={{ marginTop: '16px' }}>
+                    <LiveClassStatus 
+                      courseId={course._id}
+                      courseTitle={course.title}
+                      userName={session?.user?.name || 'Student'}
+                      userId={userId}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Lecture List */}

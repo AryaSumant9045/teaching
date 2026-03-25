@@ -17,20 +17,27 @@ export async function POST(req: NextRequest) {
   try {
     const { meetingId, name, role } = await req.json()
 
-    const presetName =
-      role === 'host'
-        ? (process.env.DYTE_PRESET_NAME ?? 'group_call_host')
-        : 'group_call_participant'
+    const presetName = process.env.DYTE_PRESET_NAME
+    
+    console.log('DYTE_PRESET_NAME:', presetName)
+    console.log('Meeting ID:', meetingId)
+    
+    const body: any = {
+      name: name ?? 'Student',
+      picture: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name ?? 'anon')}`,
+      custom_participant_id: `${role}_${Date.now()}`,
+    }
+    
+    if (presetName) {
+      body.preset_name = presetName
+    }
+    
+    console.log('Request body:', JSON.stringify(body, null, 2))
 
     const res = await fetch(`${DYTE_BASE}/meetings/${meetingId}/participants`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({
-        name: name ?? 'Student',
-        picture: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name ?? 'anon')}`,
-        preset_name: presetName,
-        custom_participant_id: `${role}_${Date.now()}`,
-      }),
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {
