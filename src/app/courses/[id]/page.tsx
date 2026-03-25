@@ -4,8 +4,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import Script from 'next/script'
-import CourseVideoPlayer from '@/components/ui/CourseVideoPlayer'
-import LiveClassStatus from '@/components/LiveClassStatus'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Clock, Users, Star, BookOpen, Lock, Play, FileText,
@@ -13,6 +11,8 @@ import {
   CheckCircle, Loader, ChevronLeft, ChevronRight, ChevronDown,
   AlertCircle, X, Menu, BookMarked
 } from 'lucide-react'
+import LiveClassStatus from '@/components/LiveClassStatus'
+import LiveClassSchedule from '@/components/student/LiveClassSchedule'
 
 interface CourseMaterial { id: string; name: string; type: string; url: string }
 interface LiveClass { scheduledAt: string; meetingUrl: string; isLive: boolean; title: string }
@@ -59,9 +59,17 @@ export default function CourseDetailPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/courses').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
-      fetch(`/api/lectures?courseId=${id}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }),
-      fetch(`/api/purchases/check?resourceId=${id}&resourceType=course`).then(r => r.json().catch(() => ({ purchased: false })))
+      fetch('/api/courses').then(r => { 
+        if (!r.ok) throw new Error(`HTTP ${r.status}`); 
+        return r.json().catch(() => []);
+      }),
+      fetch(`/api/lectures?courseId=${id}`).then(r => { 
+        if (!r.ok) throw new Error(`HTTP ${r.status}`); 
+        return r.json().catch(() => []);
+      }),
+      fetch(`/api/purchases/check?resourceId=${id}&resourceType=course`).then(r => 
+        r.json().catch(() => ({ purchased: false }))
+      )
     ]).then(([courses, lecs, purchaseData]: [Course[], Lecture[], any]) => {
       const found = Array.isArray(courses) ? courses.find(c => c._id === id) ?? null : null
       setCourse(found)
@@ -90,7 +98,7 @@ export default function CourseDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: course.price, resourceId: course._id, resourceType: 'course' })
       });
-      const data = await r.json();
+      const data = await r.json().catch(() => ({}));
       if (!data.order) throw new Error(data.error || 'Order creation failed');
 
       const options = {
@@ -114,7 +122,10 @@ export default function CourseDetailPage() {
               amount: course.price
             })
           });
-          const verifyData = await verifyRes.json();
+          const verifyData = await verifyRes.json().catch((e) => {
+            console.error('Error parsing verification response:', e);
+            return {};
+          });
           if (verifyData.success) {
             setIsPurchased(true);
           }
@@ -270,7 +281,7 @@ export default function CourseDetailPage() {
 
                 {/* Live Class Status for Enrolled Students */}
                 {isPurchased && course && userId && (
-                  <div style={{ marginTop: '16px' }}>
+                  <div style={{ marginTop: '16px', marginBottom: '16px' }}>
                     <LiveClassStatus 
                       courseId={course._id}
                       courseTitle={course.title}
@@ -388,6 +399,18 @@ export default function CourseDetailPage() {
           {activeLec ? (
             <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
+              {/* Live Class Banner for Enrolled Students */}
+              {isPurchased && course && userId && (
+                <div style={{ marginBottom: '24px' }}>
+                  <LiveClassStatus 
+                    courseId={course._id}
+                    courseTitle={course.title}
+                    userName={session?.user?.name || 'Student'}
+                    userId={userId}
+                  />
+                </div>
+              )}
+
               {/* Video Player */}
               <div style={{ borderRadius: '16px', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: `1px solid ${course.color}30`, boxShadow: `0 0 50px ${course.color}18`, marginBottom: '24px' }}>
                 {isLockedCourse && !activeLec.isFree ? (
@@ -404,7 +427,13 @@ export default function CourseDetailPage() {
                     </button>
                   </div>
                 ) : activeLec.videoUrl ? (
-                  <CourseVideoPlayer videoUrl={activeLec.videoUrl} title={activeLec.title} />
+                  <video 
+                    controls 
+                    style={{ width: '100%', height: '100%', borderRadius: '16px' }}
+                    src={activeLec.videoUrl}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,22,48,0.95)', gap: '14px' }}>
                     <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: `${course.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -524,6 +553,18 @@ export default function CourseDetailPage() {
               <BookOpen size={48} style={{ margin: '0 auto 16px', opacity: 0.15 }} />
               <h2 style={{ margin: '0 0 8px' }}>No Lectures Yet</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>This course doesn't have any lectures added yet.</p>
+            </div>
+          )}
+
+          {/* Live Class Schedule for Enrolled Students */}
+          {isPurchased && course && userId && (
+            <div style={{ marginTop: '40px' }}>
+              <LiveClassSchedule 
+                courseId={course._id}
+                courseTitle={course.title}
+                userName={session?.user?.name || 'Student'}
+                userId={userId}
+              />
             </div>
           )}
         </div>

@@ -79,12 +79,12 @@ body {
 
 /* === Gradient Text === */
 .gradient-text-gold {
-  background: linear-gradient(135deg, #f5a623, #ff6b35, #f5a623);
+  background: linear-gradient(135deg, #0066ff, #00ff88, #ff0066, #ff8800, #ffdd00);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s linear infinite;
+  animation: rainbow-shift 3s ease-in-out infinite;
 }
 .gradient-text-cosmic {
   background: linear-gradient(135deg, #00e5ff, #7c3aed, #f5a623);
@@ -95,7 +95,13 @@ body {
 
 @keyframes shimmer {
   0%   { background-position: 0%   50%; }
-  100% { background-position: 200% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@keyframes rainbow-shift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
 }
 
 /* === Mandala Spin === */

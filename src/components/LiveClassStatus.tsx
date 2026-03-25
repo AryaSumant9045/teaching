@@ -51,12 +51,12 @@ export default function LiveClassStatus({
         headers: { 'Content-Type': 'application/json' }
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({ isLive: false }))
 
       if (!res.ok) {
         // If not enrolled or other error, just set not live
-        setLiveStatus({ isLive: false, message: data.error })
-        setError(data.error)
+        setLiveStatus({ isLive: false, message: data.error || 'Error checking status' })
+        setError(data.error || 'Error checking status')
         return
       }
 
@@ -83,22 +83,13 @@ export default function LiveClassStatus({
   }, [checkLiveStatus])
 
   const handleJoinClass = async () => {
-    if (!liveStatus?.isLive || !liveStatus.studentToken) return
+    if (!liveStatus?.isLive || !liveStatus.jitsiRoomName) return
 
     setJoining(true)
 
     try {
-      // Store the token and meeting info in sessionStorage for the live page
-      sessionStorage.setItem('dyte_auth_token', liveStatus.studentToken)
-      sessionStorage.setItem('dyte_meeting_id', liveStatus.meetingId || '')
-      sessionStorage.setItem('dyte_room_name', liveStatus.roomName || '')
-      sessionStorage.setItem('live_session_title', liveStatus.title || 'Live Class')
-      sessionStorage.setItem('user_role', 'student')
-      sessionStorage.setItem('user_name', userName)
-      sessionStorage.setItem('user_id', userId)
-
-      // Navigate to the live class page
-      router.push(`/live?meetingId=${liveStatus.meetingId}`)
+      // Navigate to the Jitsi live class page
+      router.push(`/live/${liveStatus.jitsiRoomName}?title=${encodeURIComponent(liveStatus.title || 'Live Class')}&role=participant&name=${encodeURIComponent(userName)}`)
     } catch (err) {
       console.error('Failed to join class:', err)
       setError('Failed to join the live session')

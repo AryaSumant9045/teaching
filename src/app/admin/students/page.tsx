@@ -86,8 +86,8 @@ export default function AdminStudentsPage() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <div style={{ margin: '2rem 1rem', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: '1rem', paddingLeft: '1rem', display: 'flex', alignItems: 'center', pointerEvents: 'none', zIndex: 10 }}>
             <Search className="h-5 w-5 text-gray-500" />
           </div>
           <input
@@ -95,7 +95,16 @@ export default function AdminStudentsPage() {
             placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0B1224] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all font-medium"
+            style={{
+              width: '100%',
+              backgroundColor: '#0B1224',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '12px',
+              padding: '16px 16px 16px 64px',
+              color: 'white',
+              fontSize: '16px',
+              outline: 'none'
+            }}
           />
         </div>
 

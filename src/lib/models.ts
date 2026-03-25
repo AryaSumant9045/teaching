@@ -194,25 +194,23 @@ export interface ILiveSession {
   _id?: string
   courseId: string
   adminId: string
-  dyteMeetingId: string
-  dyteRoomName: string
-  status: 'active' | 'ended'
-  startedAt: string
-  endedAt?: string
+  jitsiRoomName: string
   title: string
-  description?: string
+  scheduledAt: string
+  status: 'scheduled' | 'active' | 'completed'
+  startedAt?: string
+  endedAt?: string
 }
 
 const LiveSessionSchema = new Schema<ILiveSession>({
   courseId: { type: String, required: true, index: true },
   adminId: { type: String, required: true },
-  dyteMeetingId: { type: String, required: true },
-  dyteRoomName: { type: String, required: true },
-  status: { type: String, enum: ['active', 'ended'], default: 'active' },
-  startedAt: { type: String, default: () => new Date().toISOString() },
+  jitsiRoomName: { type: String, required: true, unique: true },
+  title: { type: String, required: true },
+  scheduledAt: { type: String, required: true },
+  status: { type: String, enum: ['scheduled', 'active', 'completed'], default: 'scheduled' },
+  startedAt: { type: String },
   endedAt: { type: String },
-  title: { type: String, default: 'Live Class' },
-  description: { type: String, default: '' },
 }, { versionKey: false })
 
 // ── Model Exports (safe for Next.js hot-reload) ───────────
@@ -228,3 +226,8 @@ export const PYQ = () => getModel<IPYQ>('PYQ', PYQSchema)
 export const Purchase = () => getModel<IPurchase>('Purchase', PurchaseSchema)
 export const Enrollment = () => getModel<IEnrollment>('Enrollment', EnrollmentSchema)
 export const LiveSession = () => getModel<ILiveSession>('LiveSession', LiveSessionSchema)
+
+// Also export direct model references for API routes
+export const LiveSessionModel = mongoose.models.LiveSession || mongoose.model('LiveSession', LiveSessionSchema)
+export const EnrollmentModel = mongoose.models.Enrollment || mongoose.model('Enrollment', EnrollmentSchema)
+export const PurchaseModel = mongoose.models.Purchase || mongoose.model('Purchase', PurchaseSchema)

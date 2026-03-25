@@ -11,12 +11,13 @@ function parseMaterials(raw: unknown): object[] {
   return []
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
+    const { id } = await params
     const body = await req.json()
     if (body.materials !== undefined) body.materials = parseMaterials(body.materials)
-    const lecture = await Lecture().findByIdAndUpdate(params.id, body, { new: true, runValidators: true })
+    const lecture = await Lecture().findByIdAndUpdate(id, body, { returnDocument: 'after', runValidators: true })
     if (!lecture) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(lecture)
   } catch (err: unknown) {
@@ -26,10 +27,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
-    await Lecture().findByIdAndDelete(params.id)
+    const { id } = await params
+    await Lecture().findByIdAndDelete(id)
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -38,14 +40,15 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH /api/lectures/[id] — toggle isLive on liveClass
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
+    const { id } = await params
     const { isLive } = await req.json()
     const lecture = await Lecture().findByIdAndUpdate(
-      params.id,
+      id,
       { 'liveClass.isLive': isLive },
-      { new: true }
+      { returnDocument: 'after' }
     )
     return NextResponse.json(lecture)
   } catch (err: unknown) {

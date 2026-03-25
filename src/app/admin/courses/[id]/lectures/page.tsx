@@ -97,19 +97,39 @@ export default function LecturesAdminPage() {
     setHasLive(next)
   }
 
-  const startDyteLive = async (lec: Lecture) => {
+  const startJitsiLive = async (lec: Lecture) => {
     setDyteLoading(lec._id)
     try {
-      const res = await fetch('/api/dyte/meeting', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lectureTitle: lec.title, lectureId: lec._id }) })
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-      const existing = lec.liveClass ?? { title: lec.title, scheduledAt: new Date().toISOString(), meetingUrl: '', isLive: false }
-      await fetch(`/api/lectures/${lec._id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ liveClass: { ...existing, meetingUrl: `https://app.dyte.io/v2/meeting?id=${data.meetingId}`, isLive: true } }) })
-      localStorage.setItem(`dyte_meeting_${lec._id}`, data.meetingId)
-      await load()
-      router.push(`/live?meetingId=${data.meetingId}&title=${encodeURIComponent(lec.title)}&role=host`)
-    } catch (e) { alert(`Go Live failed: ${e}`) }
-    finally { setDyteLoading(null) }
+      // Create a live session with Jitsi
+      const sessionRes = await fetch('/api/sessions/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: courseId, // Use courseId from URL params
+          title: lec.title,
+          scheduledAt: new Date().toISOString()
+        })
+      })
+      
+      const sessionData = await sessionRes.json()
+      if (sessionData.error) throw new Error(sessionData.error)
+      
+      // Start the session immediately
+      const startRes = await fetch(`/api/sessions/${sessionData.session._id}/start`, {
+        method: 'POST'
+      })
+      
+      const startData = await startRes.json()
+      if (startData.error) throw new Error(startData.error)
+      
+      // Navigate to Jitsi room
+      router.push(`/live/${sessionData.session.jitsiRoomName}?title=${encodeURIComponent(lec.title)}&role=host`)
+    } catch (e: any) { 
+      alert(`Go Live failed: ${e.message}`) 
+    }
+    finally { 
+      setDyteLoading(null) 
+    }
   }
 
   return (
@@ -135,9 +155,43 @@ export default function LecturesAdminPage() {
 
       {hasLive && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          style={{ padding: '14px 20px', borderRadius: '14px', background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.35)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          style={{ 
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            background: 'rgba(255,107,53,0.12)',
+            border: '1px solid rgba(255,107,53,0.35)',
+            backdropFilter: 'blur(12px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+          }}>
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff6b35' }} />
-          <span style={{ color: '#ff6b35', fontWeight: 700, fontSize: '13px' }}>🔴 A live class is currently in progress</span>
+          <span style={{ color: '#ff6b35', fontWeight: 700, fontSize: '13px' }}>🔴 Live class in progress</span>
+          <button
+            onClick={() => {
+              const liveLecture = lectures.find(l => l.liveClass?.isLive)
+              if (liveLecture) {
+                router.push(`/live?meetingId=${liveLecture.liveClass?.meetingUrl?.split('id=')[1]}&title=${encodeURIComponent(liveLecture.title)}&role=host`)
+              }
+            }}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: 'rgba(255,255,255,0.1)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.2)',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600
+            }}
+          >
+            Join Live
+          </button>
         </motion.div>
       )}
 
@@ -176,7 +230,7 @@ export default function LecturesAdminPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
-                <button onClick={() => startDyteLive(lec)} disabled={!!dyteLoading}
+                <button onClick={() => startJitsiLive(lec)} disabled={!!dyteLoading}
                   style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '8px', background: 'linear-gradient(135deg, #ff6b35, #f5a623)', color: '#0a0a0a', border: 'none', cursor: dyteLoading ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 700, opacity: dyteLoading === lec._id ? 0.7 : 1 }}>
                   {dyteLoading === lec._id ? <Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={11} />}
                   {dyteLoading === lec._id ? 'Starting…' : 'Go Live Now'}

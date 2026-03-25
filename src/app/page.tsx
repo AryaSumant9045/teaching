@@ -186,10 +186,10 @@ export default function HomePage() {
           className="text-5xl md:text-7xl font-bold leading-[1.1] max-w-4xl mb-6 drop-shadow-2xl relative z-10"
           style={{ textShadow: '0 10px 30px rgba(0,0,0,0.8)' }}
         >
-          {t.title1}{' '}
+          <span className="gradient-text-gold text-glow-gold">{t.title1}</span>{' '}
           <span className="gradient-text-gold text-glow-gold">{lang === 'hi' ? '' : 'Sanskrit'}</span>
           {lang === 'hi' ? '' : t.title2}<br />
-          {lang === 'hi' ? t.title2 : <span className="gradient-text-cosmic">Cyber-Vedic AI</span>}
+          {lang === 'hi' ? <span className="gradient-text-gold text-glow-gold">{t.title2}</span> : <span className="gradient-text-cosmic">Cyber-Vedic AI</span>}
         </motion.h1>
 
         <motion.p

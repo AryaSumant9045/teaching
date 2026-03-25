@@ -283,7 +283,13 @@ export default function PracticePage() {
       <div className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: '7rem', paddingBottom: '6rem', maxWidth: '100rem', marginLeft: 'auto', marginRight: 'auto' }}>
 
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '3.5rem' }}>
-          <span className="badge badge-cyan" style={{ marginBottom: '1rem' }}>{t.practiceStudio}</span>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="badge badge-cyan" style={{ marginBottom: '0' }}>{t.practiceStudio}</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 animate-pulse"></div>
+              <span className="text-xs" style={{ color: 'var(--accent-cyan)' }}>AI-Powered Learning</span>
+            </div>
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
             {t.sharpenSkills} <span className="gradient-text-gold">{t.sanskritSkills}</span>
           </h1>
@@ -293,7 +299,7 @@ export default function PracticePage() {
         </motion.div>
 
         {/* ── PURCHASED QUIZZES SECTION ───────────────────────────── */}
-        <GlassCard delay={0.02} className="mb-25 gap-24">
+        <GlassCard delay={0.02} className="mb-12 gap-40">
           <div className="p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
@@ -311,12 +317,14 @@ export default function PracticePage() {
               </p>
             ) : boughtQuizzes.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
                   {t.noQuizzes}
                 </p>
-                <Link href="/quizzes" className="btn-primary text-sm py-2 px-6 inline-flex items-center gap-2">
-                  {t.browseAllQuizzes} <ChevronRight size={14} />
-                </Link>
+                <div className="flex gap-4 justify-center">
+                  <Link href="/quizzes" className="btn-primary text-sm py-3 px-8 inline-flex items-center gap-2 rounded-lg transition-all duration-200 hover:scale-105">
+                    {t.browseAllQuizzes} <ChevronRight size={14} />
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -347,7 +355,7 @@ export default function PracticePage() {
         </GlassCard>
 
         {/* ── PYQ SECTION ───────────────────────────── */}
-        <GlassCard delay={0.03} className="mb-8">
+        <GlassCard delay={0.03} className="mb-12">
           <div className="p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
@@ -360,12 +368,14 @@ export default function PracticePage() {
             </div>
 
             <div className="text-center py-8">
-              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
                 {t.noPYQ}
               </p>
-              <Link href="/pyq" className="btn-primary text-sm py-2 px-6 inline-flex items-center gap-2">
-                {t.browseAllPYQ} <ChevronRight size={14} />
-              </Link>
+              <div className="flex gap-4 justify-center">
+                <Link href="/pyq" className="btn-primary text-sm py-3 px-8 inline-flex items-center gap-2 rounded-lg transition-all duration-200 hover:scale-105">
+                  {t.browseAllPYQ} <ChevronRight size={14} />
+                </Link>
+              </div>
             </div>
           </div>
         </GlassCard>
@@ -381,15 +391,16 @@ export default function PracticePage() {
             </div>
 
             {/* Word display */}
-            <div className="rounded-2xl p-6 text-center mb-5"
+            <div className="rounded-2xl p-6 text-center mb-5 relative overflow-hidden"
               style={{ background: 'rgba(255,107,53,0.05)', border: '1px solid rgba(255,107,53,0.15)' }}>
-              <p className="devanagari text-6xl mb-3 text-glow-gold" style={{ color: 'var(--accent-gold)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+              <p className="devanagari text-6xl mb-3 text-glow-gold relative z-10" style={{ color: 'var(--accent-gold)' }}>
                 {word.skt}
               </p>
-              <p className="text-xl font-semibold mb-1">{word.trans}</p>
-              <p className="text-sm font-mono mb-3" style={{ color: 'var(--accent-cyan)' }}>{word.phonetic}</p>
+              <p className="text-xl font-semibold mb-1 relative z-10">{word.trans}</p>
+              <p className="text-sm font-mono mb-3 relative z-10" style={{ color: 'var(--accent-cyan)' }}>{word.phonetic}</p>
               <div
-                className="rounded-xl px-4 py-2 inline-flex items-center gap-2 text-sm"
+                className="rounded-xl px-4 py-2 inline-flex items-center gap-2 text-sm relative z-10"
                 style={{ background: 'rgba(0,229,255,0.08)', border: '1px solid rgba(0,229,255,0.15)' }}
               >
                 <Lightbulb size={14} style={{ color: 'var(--accent-cyan)' }} />
@@ -398,36 +409,42 @@ export default function PracticePage() {
             </div>
 
             {/* Record button */}
-            <div className="flex flex-col items-center gap-5 mb-5">
+            <div className="flex flex-col items-center gap-6 mb-6">
               <motion.button
                 onClick={handleRecord}
                 whileTap={{ scale: 0.94 }}
-                className="relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                className="relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl"
                 style={{
                   background: recording
-                    ? 'linear-gradient(135deg, rgba(255,107,53,0.3), rgba(245,166,35,0.2))'
-                    : 'rgba(255,255,255,0.06)',
-                  border: recording ? '2px solid var(--accent-orange)' : '2px solid var(--border-glass)',
-                  boxShadow: recording ? 'var(--glow-orange)' : 'none',
+                    ? 'linear-gradient(135deg, rgba(255,107,53,0.4), rgba(245,166,35,0.3))'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))',
+                  border: recording ? '3px solid var(--accent-orange)' : '2px solid var(--border-glass)',
+                  boxShadow: recording ? '0 0 40px rgba(255,107,53,0.5), var(--glow-orange)' : '0 0 20px rgba(255,255,255,0.1)',
                 }}
                 aria-label={recording ? 'Stop recording' : 'Start recording'}
               >
                 {recording && (
                   <motion.div
                     className="absolute inset-0 rounded-full"
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                    animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
-                    style={{ background: 'rgba(255,107,53,0.3)' }}
+                    style={{ background: 'rgba(255,107,53,0.4)' }}
                   />
                 )}
                 {recording
-                  ? <Square size={28} style={{ color: 'var(--accent-orange)' }} />
-                  : <Mic size={28} style={{ color: 'var(--text-secondary)' }} />
+                  ? <Square size={32} style={{ color: 'var(--accent-orange)' }} />
+                  : <Mic size={32} style={{ color: 'var(--text-secondary)' }} />
                 }
               </motion.button>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                {recording ? t.recording : t.tapToStart}
-              </p>
+              <div className="text-center">
+                <p className="text-sm font-medium" style={{ color: recording ? 'var(--accent-orange)' : 'var(--text-muted)' }}>
+                  {recording ? t.recording : t.tapToStart}
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
+                  {recording ? 'Click to stop' : 'Click to begin recording'}
+                </p>
+              </div>
             </div>
 
             {/* Score display */}
@@ -461,20 +478,25 @@ export default function PracticePage() {
             </AnimatePresence>
 
             {/* Word selector */}
-            <div className="flex gap-2 mt-5 justify-center">
+            <div className="flex flex-wrap gap-3 mt-6 justify-center">
               {pronunciationWords.map((w, i) => (
-                <button
+                <motion.button
                   key={i}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => { setWordIdx(i); setScore(null) }}
-                  className="devanagari rounded-xl px-4 py-2 text-sm transition-all duration-200"
+                  className="devanagari rounded-xl px-5 py-3 text-sm transition-all duration-200 shadow-lg"
                   style={{
-                    background: wordIdx === i ? 'rgba(245,166,35,0.15)' : 'rgba(255,255,255,0.05)',
+                    background: wordIdx === i 
+                      ? 'linear-gradient(135deg, rgba(245,166,35,0.2), rgba(245,166,35,0.1))' 
+                      : 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))',
                     color: wordIdx === i ? 'var(--accent-gold)' : 'var(--text-secondary)',
-                    border: `1px solid ${wordIdx === i ? 'rgba(245,166,35,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                    border: `2px solid ${wordIdx === i ? 'rgba(245,166,35,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                    boxShadow: wordIdx === i ? '0 0 20px rgba(245,166,35,0.3)' : '0 0 10px rgba(255,255,255,0.1)',
                   }}
                 >
                   {w.skt}
-                </button>
+                </motion.button>
               ))}
             </div>
           </GlassCard>
