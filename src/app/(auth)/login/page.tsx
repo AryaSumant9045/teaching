@@ -146,7 +146,7 @@ export default function LoginPage() {
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-                className="w-full flex items-center justify-center h-10 gap-3 py-[22px] px-6 rounded-2xl font-semibold text-sm uppercase tracking-widest text-white transition-all duration-250 relative overflow-hidden group"
+                className="w-full flex items-center justify-center h-12 gap-3 py-[22px] px-6 rounded-2xl font-semibold text-sm uppercase tracking-widest text-white transition-all duration-250 relative overflow-hidden group"
                 style={{
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.12)',
