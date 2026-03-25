@@ -1,9 +1,79 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 import Navbar from '@/components/shared/Navbar'
 import GlassCard from '@/components/ui/GlassCard'
-import { Mic, Square, BarChart2, BookOpen, PenLine, Lightbulb, ChevronRight, Check } from 'lucide-react'
+import { Mic, Square, BarChart2, BookOpen, PenLine, Lightbulb, ChevronRight, Check, Brain, ShoppingCart, FileQuestion, Calendar, Languages } from 'lucide-react'
+
+const translations = {
+  en: {
+    practiceStudio: 'Practice Studio',
+    sharpenSkills: 'Sharpen Your',
+    sanskritSkills: 'Sanskrit Skills',
+    subtitle: 'Real-time pronunciation grading, writing practice, and AI-powered suggestions.',
+    yourQuizzes: 'Your Quizzes',
+    browseAllQuizzes: 'Browse All Quizzes',
+    loadingQuizzes: 'Loading your purchased quizzes...',
+    noQuizzes: "You haven't purchased any quizzes yet.",
+    questions: 'Questions',
+    minutes: 'minutes',
+    clickToStart: 'Click to start quiz',
+    startQuiz: 'Start Quiz',
+    previousYearQuestions: 'Previous Year Questions',
+    browseAllPYQ: 'Browse All PYQ',
+    loadingPYQ: 'Loading PYQ papers...',
+    noPYQ: 'No previous year papers available yet.',
+    pronunciationGrader: 'Pronunciation Grader',
+    aiPowered: 'AI Powered',
+    recording: 'Recording… speak now',
+    tapToStart: 'Tap microphone to start',
+    pronunciationScore: 'Pronunciation Score',
+    excellent: '🎉 Excellent!',
+    good: '👍 Good — keep practicing',
+    needsImprovement: '📚 Needs improvement',
+    aiRecommendations: 'AI Recommendations',
+    basedOnPerformance: 'Based on your performance, the RL engine suggests:',
+    startSuggested: 'Start Suggested',
+    writingPractice: 'Devanagari Writing Practice',
+    traceLearn: 'Trace & Learn',
+    markAsPracticed: 'Mark as Practiced',
+    morePapers: 'more papers'
+  },
+  hi: {
+    practiceStudio: 'अभ्यास स्टूडियो',
+    sharpenSkills: 'अपने',
+    sanskritSkills: 'संस्कृत कौशल निखारें',
+    subtitle: 'वास्तविक समय उच्चारण ग्रेडिंग, लेखन अभ्यास और AI-संचालित सुझाव।',
+    yourQuizzes: 'आपकी प्रश्नोत्तरी',
+    browseAllQuizzes: 'सभी प्रश्नोत्तरी देखें',
+    loadingQuizzes: 'आपकी खरीदी गई प्रश्नोत्तरी लोड हो रही हैं...',
+    noQuizzes: 'आपने अभी तक कोई प्रश्नोत्तरी नहीं खरीदी है।',
+    questions: 'प्रश्न',
+    minutes: 'मिनट',
+    clickToStart: 'प्रश्नोत्तरी शुरू करने के लिए क्लिक करें',
+    startQuiz: 'प्रश्नोत्तरी शुरू करें',
+    previousYearQuestions: 'पिछले वर्ष के प्रश्न',
+    browseAllPYQ: 'सभी PYQ देखें',
+    loadingPYQ: 'PYQ पेपर लोड हो रहे हैं...',
+    noPYQ: 'कोई पिछले वर्ष का पेपर उपलब्ध नहीं है।',
+    pronunciationGrader: 'उच्चारण ग्रेडर',
+    aiPowered: 'AI संचालित',
+    recording: 'रिकॉर्डिंग… अब बोलें',
+    tapToStart: 'शुरू करने के लिए माइक टैप करें',
+    pronunciationScore: 'उच्चारण स्कोर',
+    excellent: '🎉 उत्कृष्ट!',
+    good: '👍 अच्छा — अभ्यास जारी रखें',
+    needsImprovement: '📚 सुधार की आवश्यकता',
+    aiRecommendations: 'AI सुझाव',
+    basedOnPerformance: 'आपके प्रदर्शन के आधार पर, RL इंजन सुझाव देता है:',
+    startSuggested: 'सुझाए गए को शुरू करें',
+    writingPractice: 'देवनागरी लेखन अभ्यास',
+    traceLearn: 'ट्रेस और सीखें',
+    markAsPracticed: 'अभ्यास किया गया चिह्नित करें',
+    morePapers: 'और पेपर'
+  }
+}
 
 const pronunciationWords = [
   { skt: 'कृष्ण', trans: 'Kṛṣṇa', phonetic: 'k-ṛ-ṣ-ṇ-a', tips: 'The ṛ is a vocalic r — tongue rolls back slightly.' },
@@ -27,11 +97,53 @@ const rlSuggestions = [
   { title: 'Aspirated consonants',   xp: 90, priority: 'High',   badge: 'badge-orange', icon: '📢' },
 ]
 
+interface Quiz {
+  _id: string
+  title: string
+  timer: number
+  lessonId: string
+  type: 'quiz' | 'lecture'
+  isFree?: boolean
+  price?: number
+  questions?: Array<{
+    id: string; text: string; marks: number;
+    options: Array<{ text: string; isCorrect: boolean }>
+  }>
+}
+
+interface Course {
+  _id: string
+  title: string
+  description: string
+  category: 'Beginner' | 'Intermediate' | 'Advanced'
+  color: string
+  isFree?: boolean
+  price?: number
+}
+
+interface PYQ {
+  _id: string
+  title: string
+  year: string
+  subject: string
+  fileUrl: string
+  questions: number
+  addedAt: string
+}
+
 export default function PracticePage() {
   const [recording, setRecording]   = useState(false)
   const [score, setScore]           = useState<number | null>(null)
   const [wordIdx, setWordIdx]       = useState(0)
   const [selectedChar, setChar]     = useState(0)
+  const [boughtQuizzes, setBoughtQuizzes] = useState<Quiz[]>([])
+  const [loadingBoughtQuizzes, setLoadingBoughtQuizzes] = useState(true)
+  const [boughtCourses, setBoughtCourses] = useState<Course[]>([])
+  const [loadingBoughtCourses, setLoadingBoughtCourses] = useState(true)
+  const [pyqs, setPyqs] = useState<PYQ[]>([])
+  const [loadingPyqs, setLoadingPyqs] = useState(true)
+  const [lang, setLang] = useState<'en' | 'hi'>('en')
+  const t = translations[lang]
 
   const word = pronunciationWords[wordIdx]
 
@@ -51,20 +163,212 @@ export default function PracticePage() {
     : score >= 70 ? 'var(--accent-gold)'
     : 'var(--accent-orange)'
 
+  // Load purchased quizzes
+  useEffect(() => {
+    const loadBoughtQuizzes = async () => {
+      try {
+        const purchasesRes = await fetch('/api/purchases/user', { cache: 'no-store' })
+        if (!purchasesRes.ok) {
+          setBoughtQuizzes([])
+          return
+        }
+
+        const purchasesData = await purchasesRes.json()
+        const purchasedIds = Array.isArray(purchasesData.purchasedResourceIds)
+          ? purchasesData.purchasedResourceIds.map((id: string | number) => String(id))
+          : []
+
+        if (purchasedIds.length === 0) {
+          setBoughtQuizzes([])
+          return
+        }
+
+        const quizzesRes = await fetch('/api/quizzes', { cache: 'no-store' })
+        if (!quizzesRes.ok) {
+          setBoughtQuizzes([])
+          return
+        }
+
+        const allQuizzes = await quizzesRes.json()
+        const purchasedSet = new Set(purchasedIds)
+        const filteredBoughtQuizzes = Array.isArray(allQuizzes)
+          ? allQuizzes.filter((quiz) => purchasedSet.has(String(quiz._id)))
+          : []
+
+        setBoughtQuizzes(filteredBoughtQuizzes)
+      } catch {
+        setBoughtQuizzes([])
+      } finally {
+        setLoadingBoughtQuizzes(false)
+      }
+    }
+
+    const loadBoughtCourses = async () => {
+      try {
+        const purchasesRes = await fetch('/api/purchases/user', { cache: 'no-store' })
+        if (!purchasesRes.ok) {
+          setBoughtCourses([])
+          return
+        }
+
+        const purchasesData = await purchasesRes.json()
+        const purchasedIds = Array.isArray(purchasesData.purchasedResourceIds)
+          ? purchasesData.purchasedResourceIds.map((id: string | number) => String(id))
+          : []
+
+        if (purchasedIds.length === 0) {
+          setBoughtCourses([])
+          return
+        }
+
+        const coursesRes = await fetch('/api/courses', { cache: 'no-store' })
+        if (!coursesRes.ok) {
+          setBoughtCourses([])
+          return
+        }
+
+        const allCourses = await coursesRes.json()
+        const purchasedSet = new Set(purchasedIds)
+        const filteredBoughtCourses = Array.isArray(allCourses)
+          ? allCourses.filter((course) => purchasedSet.has(String(course._id)))
+          : []
+
+        setBoughtCourses(filteredBoughtCourses)
+      } catch {
+        setBoughtCourses([])
+      } finally {
+        setLoadingBoughtCourses(false)
+      }
+    }
+
+    loadBoughtQuizzes()
+    loadBoughtCourses()
+
+    // Load PYQs
+    const loadPyqs = async () => {
+      try {
+        const pyqsRes = await fetch('/api/pyq', { cache: 'no-store' })
+        if (!pyqsRes.ok) {
+          setPyqs([])
+          return
+        }
+        const allPyqs = await pyqsRes.json()
+        setPyqs(Array.isArray(allPyqs) ? allPyqs : [])
+      } catch {
+        setPyqs([])
+      } finally {
+        setLoadingPyqs(false)
+      }
+    }
+    loadPyqs()
+  }, [])
+
   return (
     <div className="relative min-h-screen">
       <Navbar />
-      <div className="px-4" style={{ paddingTop: '7rem', paddingBottom: '6rem', maxWidth: '100rem', width: '95%', marginLeft: 'auto', marginRight: 'auto' }}>
+      
+      {/* Language Toggle Button */}
+      <button
+        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        style={{ position: 'fixed', top: '90px', right: '16px', zIndex: 50, display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '9999px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', cursor: 'pointer', transition: 'all 0.3s' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(0,229,255,0.5)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+      >
+        <Languages size={18} style={{ color: '#00e5ff' }} />
+        <span style={{ fontSize: '14px', fontWeight: 500, color: lang === 'en' ? 'rgba(255,255,255,0.8)' : '#fff' }}>
+          {lang === 'en' ? 'हिंदी' : 'English'}
+        </span>
+      </button>
+      
+      <div className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: '7rem', paddingBottom: '6rem', maxWidth: '100rem', marginLeft: 'auto', marginRight: 'auto' }}>
 
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '3.5rem' }}>
-          <span className="badge badge-cyan" style={{ marginBottom: '1rem' }}>Practice Studio</span>
+          <span className="badge badge-cyan" style={{ marginBottom: '1rem' }}>{t.practiceStudio}</span>
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            Sharpen Your <span className="gradient-text-gold">Sanskrit Skills</span>
+            {t.sharpenSkills} <span className="gradient-text-gold">{t.sanskritSkills}</span>
           </h1>
           <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            Real-time pronunciation grading, writing practice, and AI-powered suggestions.
+            {t.subtitle}
           </p>
         </motion.div>
+
+        {/* ── PURCHASED QUIZZES SECTION ───────────────────────────── */}
+        <GlassCard delay={0.02} className="mb-12">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Brain size={18} style={{ color: 'var(--accent-cyan)' }} />
+                <h3 className="font-semibold">{t.yourQuizzes}</h3>
+              </div>
+              <Link href="/quizzes" className="btn-ghost text-sm py-2 px-4 flex items-center gap-2">
+                {t.browseAllQuizzes} <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            {loadingBoughtQuizzes ? (
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {t.loadingQuizzes}
+              </p>
+            ) : boughtQuizzes.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  {t.noQuizzes}
+                </p>
+                <Link href="/quizzes" className="btn-primary text-sm py-2 px-6 inline-flex items-center gap-2">
+                  {t.browseAllQuizzes} <ChevronRight size={14} />
+                </Link>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {boughtQuizzes.map(quiz => (
+                  <Link key={quiz._id} href={`/quizzes/${quiz._id}`}>
+                    <motion.div
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="rounded-xl p-5 transition-all duration-200 cursor-pointer"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)' }}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <Brain size={16} style={{ color: 'var(--accent-cyan)' }} />
+                        <span className="badge badge-cyan text-[10px]">{quiz.questions?.length || 0} {t.questions}</span>
+                      </div>
+                      <p className="font-semibold text-sm mb-1 leading-tight">{quiz.title}</p>
+                      <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                        {quiz.timer} {t.minutes} · {t.clickToStart}
+                      </p>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--accent-cyan)' }}>
+                        {t.startQuiz} <ChevronRight size={12} className="inline-block" />
+                      </span>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </GlassCard>
+
+        {/* ── PYQ SECTION ───────────────────────────── */}
+        <GlassCard delay={0.03} className="mb-8">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <FileQuestion size={18} style={{ color: 'var(--accent-gold)' }} />
+                <h3 className="font-semibold">{t.previousYearQuestions}</h3>
+              </div>
+              <Link href="/pyq" className="btn-ghost text-sm py-2 px-4 flex items-center gap-2">
+                {t.browseAllPYQ} <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            <div className="text-center py-8">
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                {t.noPYQ}
+              </p>
+              <Link href="/pyq" className="btn-primary text-sm py-2 px-6 inline-flex items-center gap-2">
+                {t.browseAllPYQ} <ChevronRight size={14} />
+              </Link>
+            </div>
+          </div>
+        </GlassCard>
 
         <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: '2.5rem' }}>
 
@@ -72,8 +376,8 @@ export default function PracticePage() {
           <GlassCard delay={0.05} hover glow="orange" className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-5">
               <Mic size={18} style={{ color: 'var(--accent-orange)' }} />
-              <h2 className="font-semibold text-lg">Pronunciation Grader</h2>
-              <span className="badge badge-orange ml-auto text-xs">AI Powered</span>
+              <h2 className="font-semibold text-lg">{t.pronunciationGrader}</h2>
+              <span className="badge badge-orange ml-auto text-xs">{t.aiPowered}</span>
             </div>
 
             {/* Word display */}
@@ -122,7 +426,7 @@ export default function PracticePage() {
                 }
               </motion.button>
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                {recording ? 'Recording… speak now' : 'Tap microphone to start'}
+                {recording ? t.recording : t.tapToStart}
               </p>
             </div>
 
@@ -136,12 +440,12 @@ export default function PracticePage() {
                   className="rounded-2xl p-5 text-center"
                   style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${scoreColor}40` }}
                 >
-                  <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Pronunciation Score</p>
+                  <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>{t.pronunciationScore}</p>
                   <p className="text-6xl font-bold mb-1" style={{ color: scoreColor }}>
                     {score}<span className="text-3xl">%</span>
                   </p>
                   <p className="text-sm" style={{ color: scoreColor }}>
-                    {score >= 85 ? '🎉 Excellent!' : score >= 70 ? '👍 Good — keep practicing' : '📚 Needs improvement'}
+                    {score >= 85 ? t.excellent : score >= 70 ? t.good : t.needsImprovement}
                   </p>
                   <div className="progress-bar mt-3 mx-auto max-w-[200px]">
                     <motion.div
@@ -179,10 +483,10 @@ export default function PracticePage() {
           <GlassCard delay={0.1} hover className="flex flex-col">
             <div className="flex items-center gap-2 mb-5">
               <BarChart2 size={18} style={{ color: 'var(--accent-cyan)' }} />
-              <h2 className="font-semibold">AI Recommendations</h2>
+              <h2 className="font-semibold">{t.aiRecommendations}</h2>
             </div>
             <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-              Based on your performance, the RL engine suggests:
+              {t.basedOnPerformance}
             </p>
             <div className="flex flex-col gap-3 flex-1">
               {rlSuggestions.map((s, i) => (
@@ -204,7 +508,7 @@ export default function PracticePage() {
               ))}
             </div>
             <button className="btn-primary mt-5 w-full text-sm">
-              Start Suggested <ChevronRight size={14} />
+              {t.startSuggested} <ChevronRight size={14} />
             </button>
           </GlassCard>
 
@@ -212,8 +516,8 @@ export default function PracticePage() {
           <GlassCard delay={0.2} className="lg:col-span-3">
             <div className="flex items-center gap-2 mb-5">
               <PenLine size={18} style={{ color: '#a78bfa' }} />
-              <h2 className="font-semibold text-lg">Devanagari Writing Practice</h2>
-              <span className="badge badge-cyan ml-auto text-xs">Trace & Learn</span>
+              <h2 className="font-semibold text-lg">{t.writingPractice}</h2>
+              <span className="badge badge-cyan ml-auto text-xs">{t.traceLearn}</span>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
               {writingExercises.map((ch, i) => (
@@ -256,7 +560,7 @@ export default function PracticePage() {
               </div>
               <div className="ml-auto">
                 <button className="btn-primary py-2 px-4 text-sm">
-                  <Check size={14} /> Mark as Practiced
+                  <Check size={14} /> {t.markAsPracticed}
                 </button>
               </div>
             </motion.div>

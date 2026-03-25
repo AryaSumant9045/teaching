@@ -1,13 +1,51 @@
 'use client'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { BookOpen, Compass, ArrowRight } from 'lucide-react'
+import { BookOpen, Compass, ArrowRight, Languages } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import { signIn } from 'next-auth/react'
+import { useState } from 'react'
+
+const translations = {
+  en: {
+    beginPath: 'Begin Your Path',
+    createAccount: 'Create an account to track your progress.',
+    continueGoogle: 'Continue with Google',
+    exploreGuest: 'Explore as Guest',
+    alreadyStudent: 'Already a student?',
+    readyReturn: 'Ready to return?',
+    signInAshrama: 'Sign in to your ashrama',
+    sanskritAI: 'Sanskrit',
+  },
+  hi: {
+    beginPath: 'अपना पथ शुरू करें',
+    createAccount: 'अपनी प्रगति ट्रैक करने के लिए खाता बनाएं।',
+    continueGoogle: 'Google के साथ जारी रखें',
+    exploreGuest: 'अतिथि के रूप में देखें',
+    alreadyStudent: 'पहले से ही छात्र हैं?',
+    readyReturn: 'वापस आने के लिए तैयार हैं?',
+    signInAshrama: 'अपने आश्रम में साइन इन करें',
+    sanskritAI: 'संस्कृत',
+  }
+}
 
 export default function RegisterPage() {
+  const [lang, setLang] = useState<'en' | 'hi'>('en')
+  const t = translations[lang]
+
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-[#050B14]">
+
+      {/* Language Toggle Button */}
+      <button
+        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        className="absolute top-8 right-8 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/50 transition-all duration-300 group"
+      >
+        <Languages size={18} className="text-cyan-400 group-hover:text-cyan-300" />
+        <span className="text-sm font-medium text-white/80 group-hover:text-white">
+          {lang === 'en' ? 'हिंदी' : 'English'}
+        </span>
+      </button>
 
       {/* Dynamic Cosmic Background Elements */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -41,7 +79,7 @@ export default function RegisterPage() {
           <BookOpen size={20} className="text-[#050B14]" />
         </div>
         <span className="font-bold tracking-tight text-xl">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300">Sanskrit</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300">{t.sanskritAI}</span>
           <span className="text-cyan-400">AI</span>
         </span>
       </Link>
@@ -73,9 +111,9 @@ export default function RegisterPage() {
                   आरम्भः
                 </p>
               </motion.div>
-              <h1 className="text-[2.5rem] font-black mb-4 tracking-tight text-white drop-shadow-md">Begin Your Path</h1>
+              <h1 className="text-[2.5rem] font-black mb-4 tracking-tight text-white drop-shadow-md">{t.beginPath}</h1>
               <p className="text-lg text-gray-400 font-medium tracking-wide">
-                Create an account to track your progress.
+                {t.createAccount}
               </p>
             </div>
 
@@ -92,14 +130,14 @@ export default function RegisterPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                <span className="z-10 text-white tracking-widest uppercase text-[15px]">Continue with Google</span>
+                <span className="z-10 text-white tracking-widest uppercase text-[15px]">{t.continueGoogle}</span>
               </button>
 
               <button
                 onClick={() => signIn('credentials', { callbackUrl: '/dashboard' })}
                 className="group w-full flex items-center justify-center gap-3 py-[22px] px-6 rounded-2xl font-bold text-lg transition-all overflow-hidden border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/15 hover:border-cyan-500/80 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_35px_rgba(0,229,255,0.4)] tracking-widest uppercase text-[15px]"
               >
-                Explore as Guest <ArrowRight size={22} className="transition-transform group-hover:translate-x-2" />
+                {t.exploreGuest} <ArrowRight size={22} className="transition-transform group-hover:translate-x-2" />
               </button>
             </div>
 
@@ -108,14 +146,14 @@ export default function RegisterPage() {
                 <div className="w-full border-t border-white/10"></div>
               </div>
               <div className="relative px-8 bg-[#0B1224] text-sm font-bold text-gray-500 uppercase tracking-[0.25em]">
-                Already a student?
+                {t.alreadyStudent}
               </div>
             </div>
 
             <p className="text-center text-[15px] text-gray-400 font-medium">
-              Ready to return?{' '}
+              {t.readyReturn}{' '}
               <Link href="/login" className="font-extrabold text-orange-400 hover:text-orange-300 transition-colors drop-shadow-[0_0_12px_rgba(245,166,35,0.6)] ml-2">
-                Sign in to your ashrama
+                {t.signInAshrama}
               </Link>
             </p>
           </GlassCard>

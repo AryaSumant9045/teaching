@@ -1,13 +1,38 @@
 'use client'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { BookOpen, Sparkles, ArrowRight } from 'lucide-react'
+import { BookOpen, Sparkles, ArrowRight, Languages } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 import { signIn } from 'next-auth/react'
+import { useState } from 'react'
+
+const translations = {
+  en: {
+    welcome: 'Welcome',
+    subtitle: 'Continue your journey into the Vedas.',
+    signInGoogle: 'Sign in with Google',
+    exploreGuest: 'Explore as Guest',
+    newHere: 'New Here?',
+    noAccount: "Don't have an account?",
+    beginJourney: 'Begin your journey',
+  },
+  hi: {
+    welcome: 'स्वागत है',
+    subtitle: 'वेदों की यात्रा जारी रखें।',
+    signInGoogle: 'Google से साइन इन करें',
+    exploreGuest: 'अतिथि के रूप में देखें',
+    newHere: 'यहाँ नए हैं?',
+    noAccount: 'खाता नहीं है?',
+    beginJourney: 'अपनी यात्रा शुरू करें',
+  }
+}
 
 export default function LoginPage() {
+  const [lang, setLang] = useState<'en' | 'hi'>('en')
+  const t = translations[lang]
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center space-x-0.5 p-8 overflow-hidden bg-[#050B14]">
+    <div className="relative min-h-screen flex items-center justify-center space-x-0.5 p-4 sm:p-8 overflow-hidden bg-[#050B14]">
       
       {/* Dynamic Cosmic Background Elements */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -36,12 +61,23 @@ export default function LoginPage() {
         />
       </div>
 
+      {/* Language Toggle Button */}
+      <button
+        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        className="absolute top-8 right-8 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/50 transition-all duration-300 group"
+      >
+        <Languages size={18} className="text-cyan-400 group-hover:text-cyan-300" />
+        <span className="text-sm font-medium text-white/80 group-hover:text-white">
+          {lang === 'en' ? 'हिंदी' : 'English'}
+        </span>
+      </button>
+
       <Link href="/" className="absolute top-8 left-8 z-20 flex items-center gap-3 group">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 via-yellow-400 to-orange-600 flex items-center justify-center shadow-[0_0_20px_rgba(245,166,35,0.4)] group-hover:shadow-[0_0_30px_rgba(245,166,35,0.6)] transition-all duration-300 transform group-hover:scale-110">
           <BookOpen size={20} className="text-[#050B14]" />
         </div>
         <span className="font-bold tracking-tight text-xl">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300">Sanskrit</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300">{lang === 'hi' ? 'संस्कृत' : 'Sanskrit'}</span>
           <span className="text-cyan-400">AI</span>
         </span>
       </Link>
@@ -73,9 +109,9 @@ export default function LoginPage() {
                   सुस्वागतम्
                 </p>
               </motion.div>
-              <h1 className="text-5xl font-black mb-10 tracking-tight text-white drop-shadow-lg">Welcome</h1>
+              <h1 className="text-5xl font-black mb-10 tracking-tight text-white drop-shadow-lg">{t.welcome}</h1>
               <p className="text-xl text-gray-400 font-medium tracking-wide mb-8">
-                Continue your journey into the Vedas.
+                {t.subtitle}
               </p>
             </div>
 
@@ -95,22 +131,22 @@ export default function LoginPage() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
-                  <span className="z-10 text-white tracking-widest uppercase text-[17px]">Sign in with Google</span>
+                  <span className="z-10 text-white tracking-widest uppercase text-[17px]">{t.signInGoogle}</span>
                 </button>
 
                 <button 
                   onClick={() => signIn('credentials', { callbackUrl: '/dashboard' })}
                   className="group w-full flex items-center justify-center gap-4 py-8 px-10 rounded-[1.5rem] font-bold text-xl transition-all overflow-hidden border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/15 hover:border-cyan-500/80 shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_0_50px_rgba(0,229,255,0.5)] tracking-widest uppercase text-[17px]"
                 >
-                  Explore as Guest <ArrowRight size={28} className="transition-transform group-hover:translate-x-3" />
+                  {t.exploreGuest} <ArrowRight size={28} className="transition-transform group-hover:translate-x-3" />
                 </button>
               </div>
 
               <p className="text-lg text-gray-400 font-medium tracking-wide">
-                New Here?
+                {t.newHere}
               </p>
               <p className="text-lg text-gray-400 font-medium tracking-wide">
-                Don't have an account? <Link href="/register" className="text-cyan-400 hover:underline">Begin your journey</Link>
+                {t.noAccount} <Link href="/register" className="text-cyan-400 hover:underline">{t.beginJourney}</Link>
               </p>
             </div>
           </GlassCard>

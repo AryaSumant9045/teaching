@@ -233,3 +233,32 @@ body {
 .badge-gold   { background: rgba(245,166,35,0.15); color: var(--accent-gold);   border: 1px solid rgba(245,166,35,0.3); }
 .badge-orange { background: rgba(255,107,53,0.15); color: var(--accent-orange); border: 1px solid rgba(255,107,53,0.3); }
 .badge-cyan   { background: rgba(0,229,255,0.1);   color: var(--accent-cyan);   border: 1px solid rgba(0,229,255,0.25); }
+
+/* === Mobile-safe container padding === */
+.container-mobile {
+  width: 95%;
+  max-width: 100rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 640px) {
+  .container-mobile {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Ensure all main content areas have mobile padding */
+.page-content {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 641px) {
+  .page-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}

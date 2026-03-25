@@ -4,80 +4,77 @@ import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Script from 'next/script'
-import { BookOpen, Search, Filter, ChevronRight, Clock, Users, Star, Loader, AlertCircle, ShoppingCart, Languages } from 'lucide-react'
+import { Brain, Search, Filter, ChevronRight, Clock, CheckCircle, Loader, AlertCircle, ShoppingCart, Languages } from 'lucide-react'
 
 const translations = {
   en: {
-    badge: 'Sacred Library',
-    title: 'Explore All',
-    titleHighlight: 'Courses',
-    subtitle: 'world-class Sanskrit courses crafted by Vedic scholars and AI',
-    searchPlaceholder: 'Search courses…',
+    badge: 'Quiz Arena',
+    title: 'Test Your',
+    titleHighlight: 'Knowledge',
+    subtitle: 'Challenging quizzes crafted by Vedic scholars',
+    searchPlaceholder: 'Search quizzes…',
     filter: 'Filter',
     results: 'results',
-    error: 'Could not load courses:',
+    error: 'Could not load quizzes:',
     errorMongo: 'Make sure MongoDB is connected.',
-    loading: 'Loading courses from MongoDB…',
-    noCourses: 'No courses match your search',
-    students: 'students',
-    lectures: 'lectures',
-    viewCourse: 'View Course',
-    buyCourse: 'Buy Course',
+    loading: 'Loading quizzes from MongoDB…',
+    noQuizzes: 'No quizzes match your search',
+    questions: 'questions',
+    minutes: 'mins',
+    viewQuiz: 'View Quiz',
+    buyQuiz: 'Buy Quiz',
     processing: 'Processing...',
-    loginFirst: 'Please log in first to purchase a course.',
+    loginFirst: 'Please log in first to purchase a quiz.',
     paymentFailed: 'Payment verification failed.',
     paymentInitFailed: 'Failed to initialize payment.',
     categories: {
       All: 'All',
-      Beginner: 'Beginner',
-      Intermediate: 'Intermediate',
-      Advanced: 'Advanced'
+      Standard: 'Standard Quiz',
+      Lecture: 'Lecture Test'
     }
   },
   hi: {
-    badge: 'पवित्र पुस्तकालय',
-    title: 'सभी',
-    titleHighlight: 'पाठ्यक्रम',
-    subtitle: 'वैदिक विद्वानों और AI द्वारा निर्मित विश्व-स्तरीय संस्कृत पाठ्यक्रम',
-    searchPlaceholder: 'पाठ्यक्रम खोजें…',
+    badge: 'प्रश्नोत्तरी अखाड़ा',
+    title: 'अपने',
+    titleHighlight: 'ज्ञान को परखें',
+    subtitle: 'वैदिक विद्वानों द्वारा निर्मित चुनौतीपूर्ण प्रश्नोत्तरी',
+    searchPlaceholder: 'प्रश्नोत्तरी खोजें…',
     filter: 'फ़िल्टर',
     results: 'परिणाम',
-    error: 'पाठ्यक्रम लोड नहीं हो सके:',
+    error: 'प्रश्नोत्तरी लोड नहीं हो सके:',
     errorMongo: 'सुनिश्चित करें कि MongoDB कनेक्ट है।',
-    loading: 'MongoDB से पाठ्यक्रम लोड हो रहे हैं…',
-    noCourses: 'आपकी खोज से कोई पाठ्यक्रम मेल नहीं खाते',
-    students: 'छात्र',
-    lectures: 'व्याख्यान',
-    viewCourse: 'पाठ्यक्रम देखें',
-    buyCourse: 'पाठ्यक्रम खरीदें',
+    loading: 'MongoDB से प्रश्नोत्तरी लोड हो रही हैं…',
+    noQuizzes: 'आपकी खोज से कोई प्रश्नोत्तरी मेल नहीं खाती',
+    questions: 'प्रश्न',
+    minutes: 'मिनट',
+    viewQuiz: 'प्रश्नोत्तरी देखें',
+    buyQuiz: 'प्रश्नोत्तरी खरीदें',
     processing: 'प्रक्रिया हो रही है...',
-    loginFirst: 'कृपया पाठ्यक्रम खरीदने के लिए पहले लॉग इन करें।',
+    loginFirst: 'कृपया प्रश्नोत्तरी खरीदने के लिए पहले लॉग इन करें।',
     paymentFailed: 'भुगतान सत्यापन विफल।',
     paymentInitFailed: 'भुगतान शुरू करने में विफल।',
     categories: {
       All: 'सभी',
-      Beginner: 'शुरुआती',
-      Intermediate: 'मध्यम',
-      Advanced: 'उन्नत'
+      Standard: 'स्टैंडर्ड क्विज',
+      Lecture: 'लैक्चर टेस्ट'
     }
   }
 }
 
-interface Course {
-  _id: string; title: string; description: string
-  category: 'Beginner' | 'Intermediate' | 'Advanced'
-  color: string; status: string; students: number
-  rating: number; totalLectures: number; duration: string
+interface Quiz {
+  _id: string; title: string; timer: number; lessonId: string
+  questions: Array<{ id: string; text: string; marks: number; options: Array<{ text: string; isCorrect: boolean }> }>
+  type: 'quiz' | 'lecture'
   isFree?: boolean; price?: number
 }
 
-const CATS = ['All', 'Beginner', 'Intermediate', 'Advanced']
+const CATS = ['All', 'Standard', 'Lecture']
 const CAT_COLORS: Record<string, string> = {
-  Beginner: '#00e5ff', Intermediate: '#f5a623', Advanced: '#a78bfa', All: 'rgba(136,153,187,0.9)'
+  Standard: '#00e5ff', Lecture: '#a78bfa', All: 'rgba(136,153,187,0.9)'
 }
 
-export default function CoursesListPage() {
-  const [courses, setCourses] = useState<Course[]>([])
+export default function QuizzesListPage() {
+  const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [active, setActive] = useState('All')
@@ -91,23 +88,27 @@ export default function CoursesListPage() {
 
   const { data: session } = useSession();
   useEffect(() => {
-    fetch('/api/courses')
+    fetch('/api/quizzes')
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         return r.json()
       })
-      .then(coursesData => {
-        setCourses(Array.isArray(coursesData) ? coursesData.filter(c => c.status === 'active') : [])
+      .then(quizzesData => {
+        setQuizzes(Array.isArray(quizzesData) ? quizzesData : [])
         setLoading(false)
       })
       .catch(e => { 
-        console.error('Error fetching data:', e);
+        console.error('Error fetching quizzes:', e);
         setError(String(e)); 
         setLoading(false);
       });
   }, [])
 
   useEffect(() => {
+    if (!session?.user?.email) {
+      setPurchasedIds([])
+      return
+    }
     fetch('/api/purchases/user')
       .then(r => r.json().catch(() => ({ purchasedResourceIds: [] })))
       .then(data => {
@@ -119,35 +120,35 @@ export default function CoursesListPage() {
       .catch(() => setPurchasedIds([]))
   }, [session?.user?.email])
 
-  const filtered = courses.filter(c => {
-    const cat = active === 'All' || c.category === active
-    const q = search === '' || c.title.toLowerCase().includes(search.toLowerCase()) || c.description.toLowerCase().includes(search.toLowerCase())
-    return cat && q
+  const filtered = quizzes.filter(q => {
+    const cat = active === 'All' || (active === 'Standard' && q.type === 'quiz') || (active === 'Lecture' && q.type === 'lecture')
+    const qsearch = search === '' || q.title.toLowerCase().includes(search.toLowerCase())
+    return cat && qsearch
   })
 
-  const handlePay = async (e: React.MouseEvent, course: Course) => {
+  const handlePay = async (e: React.MouseEvent, quiz: Quiz) => {
     e.preventDefault();
     if (!session?.user?.email) {
       alert(t.loginFirst);
       return;
     }
-    if (!course.price) return;
-    setPayingFor(course._id);
+    if (!quiz.price) return;
+    setPayingFor(quiz._id);
     try {
       const r = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: course.price, resourceId: course._id, resourceType: 'course' })
+        body: JSON.stringify({ amount: quiz.price, resourceId: quiz._id, resourceType: 'quiz' })
       });
       const data = await r.json();
       if (!data.order) throw new Error(data.error || 'Order creation failed');
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: course.price * 100,
+        amount: quiz.price * 100,
         currency: 'INR',
         name: lang === 'hi' ? 'संस्कृतAI' : 'SanskritAI',
-        description: `${lang === 'hi' ? 'खरीदें' : 'Purchase'} ${course.title}`,
+        description: `${lang === 'hi' ? 'खरीदें' : 'Purchase'} ${quiz.title}`,
         order_id: data.order.id,
         handler: async function (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) {
           const verifyRes = await fetch('/api/razorpay/verify', {
@@ -157,23 +158,23 @@ export default function CoursesListPage() {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              resourceId: course._id,
-              resourceType: 'course',
-              amount: course.price
+              resourceId: quiz._id,
+              resourceType: 'quiz',
+              amount: quiz.price
             })
           });
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
             setPurchasedIds(prev => {
-              const normalizedId = String(course._id)
+              const normalizedId = String(quiz._id)
               return prev.includes(normalizedId) ? prev : [...prev, normalizedId]
             });
-            window.location.href = `/courses/${course._id}`;
+            window.location.href = `/quizzes/${quiz._id}`;
           } else {
             alert(t.paymentFailed);
           }
         },
-        theme: { color: course.color || '#ff6b35' }
+        theme: { color: '#a78bfa' }
       };
 
       const rzp1 = new (window as unknown as { Razorpay: new (options: unknown) => { open: () => void } }).Razorpay(options);
@@ -204,17 +205,17 @@ export default function CoursesListPage() {
       </button>
       
       {/* Hero */}
-      <div className="px-4 sm:px-6 lg:px-12" style={{ paddingTop: '110px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid var(--border-glass)', background: 'radial-gradient(ellipse at 50% 0%, rgba(245,166,35,0.08) 0%, transparent 60%)' }}>
+      <div className="px-4 sm:px-6 lg:px-12" style={{ paddingTop: '110px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid var(--border-glass)', background: 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 60%)' }}>
         <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 14px', borderRadius: '99px', background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.3)', fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', marginBottom: '18px', textTransform: 'uppercase', letterSpacing: '0.09em' }}>
-            <BookOpen size={11} /> {t.badge}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 14px', borderRadius: '99px', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)', fontSize: '11px', fontWeight: 700, color: '#a78bfa', marginBottom: '18px', textTransform: 'uppercase', letterSpacing: '0.09em' }}>
+            <Brain size={11} /> {t.badge}
           </div>
           <h1 style={{ fontSize: 'clamp(32px,5vw,56px)', fontWeight: 900, margin: '0 0 12px', lineHeight: 1.1 }}>
             {t.title}{' '}
-            <span style={{ background: 'linear-gradient(135deg,#f5a623,#ff6b35)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t.titleHighlight}</span>
+            <span style={{ background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t.titleHighlight}</span>
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '500px', margin: '0 auto 32px', lineHeight: 1.6 }}>
-            {courses.length} {t.subtitle}
+            {quizzes.length} {t.subtitle}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(14,22,48,0.85)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '0 18px', maxWidth: '400px', width: '100%' }}>
@@ -230,7 +231,9 @@ export default function CoursesListPage() {
       <div className="px-4 sm:px-6 lg:px-12" style={{ paddingTop: '20px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
         <Filter size={13} style={{ color: 'var(--text-muted)' }} />
         {CATS.map(cat => {
-          const count = cat === 'All' ? courses.length : courses.filter(c => c.category === cat).length
+          const count = cat === 'All' ? quizzes.length : quizzes.filter(q => 
+            (cat === 'Standard' && q.type === 'quiz') || (cat === 'Lecture' && q.type === 'lecture')
+          ).length
           return (
             <button key={cat} onClick={() => setActive(cat)} style={{ padding: '6px 16px', borderRadius: '99px', fontSize: '13px', fontWeight: 500, cursor: 'pointer', background: active === cat ? `${CAT_COLORS[cat]}18` : 'transparent', color: active === cat ? CAT_COLORS[cat] : 'var(--text-secondary)', border: `1px solid ${active === cat ? `${CAT_COLORS[cat]}50` : 'rgba(255,255,255,0.08)'}`, transition: 'all 0.2s' }}>
               {t.categories[cat as keyof typeof t.categories]} <span style={{ opacity: 0.55, fontSize: '11px' }}>{count}</span>
@@ -255,56 +258,55 @@ export default function CoursesListPage() {
         </div>
       ) : (
         <div className="px-4 sm:px-6 lg:px-12" style={{ paddingTop: '24px', paddingBottom: '80px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: '20px' }}>
-          {filtered.map((course, i) => {
-            const isMonetized = course.isFree === false && course.price && course.price > 0
-            const isOwned = purchasedIds.includes(String(course._id))
+          {filtered.map((quiz, i) => {
+            const isMonetized = quiz.isFree === false && quiz.price && quiz.price > 0
+            const isOwned = purchasedIds.includes(String(quiz._id))
             const needsPurchase = isMonetized && !isOwned
 
             return (
-              <motion.div key={course._id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                whileHover={{ y: -5, boxShadow: `0 24px 48px ${course.color}20` }}
-                style={{ background: 'rgba(14,22,48,0.75)', backdropFilter: 'blur(16px)', border: `1px solid ${course.color}22`, borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', transition: 'all 0.3s' }}>
-                <div style={{ height: '3px', borderRadius: '3px', background: `linear-gradient(90deg, ${course.color}, ${course.color}66)`, boxShadow: `0 0 10px ${course.color}50` }} />
+              <motion.div key={quiz._id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                whileHover={{ y: -5, boxShadow: '0 24px 48px rgba(124,58,237,0.15)' }}
+                style={{ background: 'rgba(14,22,48,0.75)', backdropFilter: 'blur(16px)', border: `1px solid rgba(124,58,237,0.22)`, borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', transition: 'all 0.3s' }}>
+                <div style={{ height: '3px', borderRadius: '3px', background: `linear-gradient(90deg, #a78bfa, #7c3aed66)`, boxShadow: '0 0 10px rgba(124,58,237,0.5)' }} />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '99px', background: `${CAT_COLORS[course.category]}15`, color: CAT_COLORS[course.category], border: `1px solid ${CAT_COLORS[course.category]}40`, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{t.categories[course.category]}</span>
-                  {course.rating > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Star size={11} style={{ color: '#f5a623' }} fill="#f5a623" />
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#f5a623' }}>{course.rating}</span>
-                    </div>
-                  )}
+                  <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '99px', background: `${CAT_COLORS[quiz.type === 'quiz' ? 'Standard' : 'Lecture']}15`, color: CAT_COLORS[quiz.type === 'quiz' ? 'Standard' : 'Lecture'], border: `1px solid ${CAT_COLORS[quiz.type === 'quiz' ? 'Standard' : 'Lecture']}40`, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    {t.categories[quiz.type === 'quiz' ? 'Standard' : 'Lecture']}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle size={11} style={{ color: '#a78bfa' }} />
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#a78bfa' }}>{quiz.questions?.length || 0}</span>
+                  </div>
                 </div>
                 <div>
-                  <h3 style={{ fontWeight: 800, fontSize: '16px', marginBottom: '6px', lineHeight: 1.3 }}>{course.title}</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{course.description}</p>
+                  <h3 style={{ fontWeight: 800, fontSize: '16px', marginBottom: '6px', lineHeight: 1.3 }}>{quiz.title}</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {quiz.timer} {t.minutes} · {quiz.questions?.length || 0} {t.questions}
+                  </p>
                 </div>
                 <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                  {[
-                    { Icon: Clock, val: course.duration || '—' },
-                    { Icon: Users, val: `${course.students} ${t.students}` },
-                    { Icon: BookOpen, val: `${course.totalLectures} ${t.lectures}` },
-                  ].map(({ Icon, val }) => (
-                    <div key={val} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                      <Icon size={10} style={{ color: course.color }} /> {val}
-                    </div>
-                  ))}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    <Clock size={10} style={{ color: '#a78bfa' }} /> {quiz.timer} {t.minutes}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    <Brain size={10} style={{ color: '#a78bfa' }} /> {quiz.questions?.length || 0} {t.questions}
+                  </div>
                 </div>
-                <Link href={`/courses/${course._id}`} 
-                      onClick={e => { if (needsPurchase) handlePay(e, course) }}
+                <Link href={`/quizzes/${quiz._id}`} 
+                      onClick={e => { if (needsPurchase) handlePay(e, quiz) }}
                       style={{ 
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', 
                         borderRadius: '12px', fontSize: '13px', fontWeight: 800, 
-                        background: needsPurchase ? 'rgba(16,185,129,0.1)' : `${course.color}18`, 
-                        color: needsPurchase ? '#10b981' : course.color, 
-                        border: `1px solid ${needsPurchase ? 'rgba(16,185,129,0.3)' : course.color + '35'}`, 
+                        background: needsPurchase ? 'rgba(16,185,129,0.1)' : 'rgba(124,58,237,0.18)', 
+                        color: needsPurchase ? '#10b981' : '#a78bfa', 
+                        border: `1px solid ${needsPurchase ? 'rgba(16,185,129,0.3)' : 'rgba(124,58,237,0.35)'}`, 
                         textDecoration: 'none', marginTop: 'auto', transition: 'all 0.2s' 
                       }}>
-                  {payingFor === course._id ? (
+                  {payingFor === quiz._id ? (
                     <><Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> {t.processing}</>
                   ) : needsPurchase ? (
-                    <><ShoppingCart size={14} /> {t.buyCourse} - ₹{course.price}</>
+                    <><ShoppingCart size={14} /> {t.buyQuiz} - ₹{quiz.price}</>
                   ) : (
-                    <>{t.viewCourse} <ChevronRight size={14} /></>
+                    <>{t.viewQuiz} <ChevronRight size={14} /></>
                   )}
                 </Link>
               </motion.div>
@@ -312,8 +314,8 @@ export default function CoursesListPage() {
           })}
           {!loading && filtered.length === 0 && (
             <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '80px', color: 'var(--text-muted)' }}>
-              <BookOpen size={40} style={{ margin: '0 auto 16px', opacity: 0.2 }} />
-              <p style={{ fontSize: '17px', margin: 0 }}>{t.noCourses}</p>
+              <Brain size={40} style={{ margin: '0 auto 16px', opacity: 0.2 }} />
+              <p style={{ fontSize: '17px', margin: 0 }}>{t.noQuizzes}</p>
             </div>
           )}
         </div>

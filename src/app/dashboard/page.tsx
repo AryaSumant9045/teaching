@@ -7,8 +7,73 @@ import GlassCard from '@/components/ui/GlassCard'
 import ProgressChart from '@/components/features/ProgressChart'
 import {
   Flame, BookOpen, Mic, BarChart2, Target, Trophy,
-  TrendingUp, Zap, Star, CheckCircle2, ChevronRight, Brain, ShoppingCart
+  TrendingUp, Zap, Star, CheckCircle2, ChevronRight, Brain, ShoppingCart, Languages
 } from 'lucide-react'
+
+const translations = {
+  en: {
+    greeting: 'नमस्ते,',
+    learner: 'Learner',
+    level: 'Level',
+    xpToNext: 'XP to next level',
+    continueLearning: 'Continue Learning',
+    boughtCourses: 'Bought Courses',
+    browseCourses: 'Browse courses',
+    loadingCourses: 'Loading your purchased courses...',
+    noCourses: 'You have not purchased any course yet.',
+    openCourse: 'Open Course',
+    dailyStreak: 'Daily Streak',
+    daysInRow: 'days in a row',
+    dailyGoal: 'Daily Goal',
+    lessonsCompleted: 'lessons completed',
+    achievements: 'Achievements',
+    aiRecommends: 'AI Recommends',
+    weakPoint: 'Weak Point',
+    startNow: 'Start Now',
+    weeklyProgress: 'Weekly Progress',
+    last7Days: 'Last 7 days',
+    skillMastery: 'Skill Mastery',
+    recentLessons: 'Recent Lessons',
+    viewAll: 'View all',
+    complete: 'complete',
+    categories: {
+      Grammar: 'Grammar',
+      Vocabulary: 'Vocabulary',
+      Phonetics: 'Phonetics'
+    }
+  },
+  hi: {
+    greeting: 'नमस्ते,',
+    learner: 'शिक्षार्थी',
+    level: 'स्तर',
+    xpToNext: 'अगले स्तर के लिए XP',
+    continueLearning: 'सीखना जारी रखें',
+    boughtCourses: 'खरीदे गए पाठ्यक्रम',
+    browseCourses: 'पाठ्यक्रम देखें',
+    loadingCourses: 'आपके खरीदे गए पाठ्यक्रम लोड हो रहे हैं...',
+    noCourses: 'आपने अभी तक कोई पाठ्यक्रम नहीं खरीदा है।',
+    openCourse: 'पाठ्यक्रम खोलें',
+    dailyStreak: 'दैनिक स्ट्रीक',
+    daysInRow: 'दिन लगातार',
+    dailyGoal: 'दैनिक लक्ष्य',
+    lessonsCompleted: 'पाठ पूरे हुए',
+    achievements: 'उपलब्धियाँ',
+    aiRecommends: 'AI सुझाव',
+    weakPoint: 'कमजोर बिंदु',
+    startNow: 'अब शुरू करें',
+    weeklyProgress: 'साप्ताहिक प्रगति',
+    last7Days: 'पिछले 7 दिन',
+    skillMastery: 'कौशल महारत',
+    recentLessons: 'हाल के पाठ',
+    viewAll: 'सभी देखें',
+    complete: 'पूरा हुआ',
+    categories: {
+      Grammar: 'व्याकरण',
+      Vocabulary: 'शब्दावली',
+      Phonetics: 'ध्वनि विज्ञान'
+    }
+  }
+}
 
 const streak = 14
 const dailyGoal = { done: 3, total: 5 }
@@ -23,18 +88,18 @@ const recentLessons = [
 ]
 
 const masteryData = [
-  { subject: 'Vocabulary', score: 72, color: 'var(--accent-gold)' },
-  { subject: 'Grammar', score: 54, color: 'var(--accent-orange)' },
-  { subject: 'Pronunciation', score: 88, color: 'var(--accent-cyan)' },
-  { subject: 'Sandhi', score: 41, color: '#a78bfa' },
-  { subject: 'Samasa', score: 30, color: '#34d399' },
+  { subject: 'Vocabulary', hiSubject: 'शब्दावली', score: 72, color: 'var(--accent-gold)' },
+  { subject: 'Grammar', hiSubject: 'व्याकरण', score: 54, color: 'var(--accent-orange)' },
+  { subject: 'Pronunciation', hiSubject: 'उच्चारण', score: 88, color: 'var(--accent-cyan)' },
+  { subject: 'Sandhi', hiSubject: 'संधि', score: 41, color: '#a78bfa' },
+  { subject: 'Samasa', hiSubject: 'समास', score: 30, color: '#34d399' },
 ]
 
 const achievements = [
-  { label: 'First Word', icon: '⭐', earned: true },
-  { label: 'Week Warrior', icon: '🔥', earned: true },
-  { label: 'Grammar Guru', icon: '📖', earned: false },
-  { label: 'Pronunciation+', icon: '🎤', earned: false },
+  { label: 'First Word', hiLabel: 'पहला शब्द', icon: '⭐', earned: true },
+  { label: 'Week Warrior', hiLabel: 'सप्ताह योद्धा', icon: '🔥', earned: true },
+  { label: 'Grammar Guru', hiLabel: 'व्याकरण गुरु', icon: '📖', earned: false },
+  { label: 'Pronunciation+', hiLabel: 'उच्चारण+', icon: '🎤', earned: false },
 ]
 
 interface Course {
@@ -51,6 +116,8 @@ export default function DashboardPage() {
   const xpToNext = 3200
   const [boughtCourses, setBoughtCourses] = useState<Course[]>([])
   const [loadingBoughtCourses, setLoadingBoughtCourses] = useState(true)
+  const [lang, setLang] = useState<'en' | 'hi'>('en')
+  const t = translations[lang]
 
   useEffect(() => {
     const loadBoughtCourses = async () => {
@@ -97,7 +164,19 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-screen">
       <Navbar />
-      <div className="px-4" style={{ paddingTop: '7rem', paddingBottom: '6rem', maxWidth: '100rem', width: '95%', marginLeft: 'auto', marginRight: 'auto' }}>
+
+      {/* Language Toggle Button */}
+      <button
+        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        className="fixed top-24 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/50 transition-all duration-300 group backdrop-blur-md"
+      >
+        <Languages size={18} className="text-cyan-400 group-hover:text-cyan-300" />
+        <span className="text-sm font-medium text-white/80 group-hover:text-white">
+          {lang === 'en' ? 'हिंदी' : 'English'}
+        </span>
+      </button>
+
+      <div className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: '7rem', paddingBottom: '4rem', maxWidth: '72rem', marginLeft: 'auto', marginRight: 'auto' }}>
 
         {/* Header */}
         <motion.div
@@ -108,10 +187,10 @@ export default function DashboardPage() {
         >
           <div>
             <h1 className="text-4xl md:text-5xl font-bold mb-2">
-              नमस्ते, <span className="gradient-text-gold">Learner</span> 🙏
+              {t.greeting} <span className="gradient-text-gold">{t.learner}</span> 🙏
             </h1>
             <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-              Level {level} · {xp.toLocaleString()} / {xpToNext.toLocaleString()} XP to next level
+              {t.level} {level} · {xp.toLocaleString()} / {xpToNext.toLocaleString()} {t.xpToNext}
             </p>
             <div className="progress-bar mt-4 max-w-sm" style={{ height: '8px' }}>
               <motion.div
@@ -124,7 +203,7 @@ export default function DashboardPage() {
           </div>
           <Link href="/lessons/1" className="btn-primary text-lg px-8 py-4">
             <Zap size={20} />
-            Continue Learning
+            {t.continueLearning}
           </Link>
         </motion.div>
 
@@ -137,20 +216,20 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
                   <ShoppingCart size={18} style={{ color: 'var(--accent-cyan)' }} />
-                  <h3 className="font-semibold">Bought Courses</h3>
+                  <h3 className="font-semibold">{t.boughtCourses}</h3>
                 </div>
                 <Link href="/courses" className="text-sm flex items-center gap-1" style={{ color: 'var(--accent-cyan)' }}>
-                  Browse courses <ChevronRight size={14} />
+                  {t.browseCourses} <ChevronRight size={14} />
                 </Link>
               </div>
 
               {loadingBoughtCourses ? (
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Loading your purchased courses...
+                  {t.loadingCourses}
                 </p>
               ) : boughtCourses.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  You have not purchased any course yet.
+                  {t.noCourses}
                 </p>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -173,10 +252,10 @@ export default function DashboardPage() {
                         </span>
                         <p className="font-semibold text-sm mb-1 leading-tight">{course.title}</p>
                         <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
-                          {course.description || 'Continue your learning in this course.'}
+                          {course.description || (lang === 'hi' ? 'इस पाठ्यक्रम में अपनी सीखना जारी रखें।' : 'Continue your learning in this course.')}
                         </p>
                         <span className="text-xs font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-                          Open Course <ChevronRight size={12} className="inline-block" />
+                          {t.openCourse} <ChevronRight size={12} className="inline-block" />
                         </span>
                       </motion.div>
                     </Link>
@@ -187,13 +266,13 @@ export default function DashboardPage() {
           </GlassCard>
 
           {/* Streak card */}
-          <GlassCard delay={0.05} hover glow="orange" className="flex flex-col">
+          <GlassCard delay={0.05} hover glow="orange" className="flex flex-col p-5">
             <div className="flex items-center gap-2 mb-3">
               <Flame size={18} style={{ color: 'var(--accent-orange)' }} />
-              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Daily Streak</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{t.dailyStreak}</span>
             </div>
             <p className="text-6xl font-bold gradient-text-gold mb-1">{streak}</p>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>days in a row 🔥</p>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t.daysInRow} 🔥</p>
             <div className="mt-4 flex gap-1">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div
@@ -206,15 +285,15 @@ export default function DashboardPage() {
           </GlassCard>
 
           {/* Daily goal */}
-          <GlassCard delay={0.1} hover className="flex flex-col">
+          <GlassCard delay={0.1} hover className="flex flex-col p-5">
             <div className="flex items-center gap-2 mb-3">
               <Target size={18} style={{ color: 'var(--accent-gold)' }} />
-              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Daily Goal</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{t.dailyGoal}</span>
             </div>
             <p className="text-4xl font-bold mb-1">
               {dailyGoal.done}<span style={{ color: 'var(--text-muted)' }}>/{dailyGoal.total}</span>
             </p>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>lessons completed</p>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>{t.lessonsCompleted}</p>
             <div className="grid grid-cols-5 gap-1 mt-auto">
               {Array.from({ length: dailyGoal.total }).map((_, i) => (
                 <div
@@ -232,10 +311,10 @@ export default function DashboardPage() {
           </GlassCard>
 
           {/* XP / Trophy */}
-          <GlassCard delay={0.15} hover className="flex flex-col">
+          <GlassCard delay={0.15} hover className="flex flex-col p-5">
             <div className="flex items-center gap-2 mb-3">
               <Trophy size={18} style={{ color: '#a78bfa' }} />
-              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Achievements</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{t.achievements}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-auto">
               {achievements.map(a => (
@@ -249,56 +328,56 @@ export default function DashboardPage() {
                   }}
                 >
                   <div className="text-2xl mb-1">{a.icon}</div>
-                  <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>{a.label}</p>
+                  <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>{lang === 'hi' ? a.hiLabel : a.label}</p>
                 </div>
               ))}
             </div>
           </GlassCard>
 
           {/* Next lesson suggestion */}
-          <GlassCard delay={0.2} hover glow="cyan" className="flex flex-col">
+          <GlassCard delay={0.2} hover glow="cyan" className="flex flex-col p-5">
             <div className="flex items-center gap-2 mb-3">
               <Brain size={18} style={{ color: 'var(--accent-cyan)' }} />
-              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>AI Recommends</span>
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{t.aiRecommends}</span>
             </div>
             <div
               className="flex-1 rounded-xl p-4 flex flex-col justify-center"
               style={{ background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.15)' }}
             >
-              <span className="badge badge-cyan text-[10px] mb-3">Weak Point</span>
-              <p className="font-semibold mb-1">Compound Words (Samāsa)</p>
+              <span className="badge badge-cyan text-[10px] mb-3">{t.weakPoint}</span>
+              <p className="font-semibold mb-1">{lang === 'hi' ? 'समास (संयुक्त शब्द)' : 'Compound Words (Samāsa)'}</p>
               <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
-                Your Samasa score is 30%. Practice now to level up fast.
+                {lang === 'hi' ? 'आपका समास स्कोर 30% है। तेज़ी से स्तर बढ़ाने के लिए अभ्यास करें।' : 'Your Samasa score is 30%. Practice now to level up fast.'}
               </p>
               <Link href="/lessons/5" className="btn-primary text-xs py-2">
-                Start Now <ChevronRight size={12} />
+                {t.startNow} <ChevronRight size={12} />
               </Link>
             </div>
           </GlassCard>
 
           {/* Progress chart — spans 2 cols */}
-          <GlassCard delay={0.25} className="md:col-span-2 xl:col-span-2">
+          <GlassCard delay={0.25} className="md:col-span-2 xl:col-span-2 p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp size={18} style={{ color: 'var(--accent-gold)' }} />
-                <h3 className="font-semibold">Weekly Progress</h3>
+                <h3 className="font-semibold">{t.weeklyProgress}</h3>
               </div>
-              <span className="badge badge-gold text-xs">Last 7 days</span>
+              <span className="badge badge-gold text-xs">{t.last7Days}</span>
             </div>
             <ProgressChart />
           </GlassCard>
 
           {/* Mastery bars — spans 2 cols */}
-          <GlassCard delay={0.3} className="md:col-span-2 xl:col-span-2">
+          <GlassCard delay={0.3} className="md:col-span-2 xl:col-span-2 p-5">
             <div className="flex items-center gap-2 mb-5">
               <BarChart2 size={18} style={{ color: 'var(--accent-orange)' }} />
-              <h3 className="font-semibold">Skill Mastery</h3>
+              <h3 className="font-semibold">{t.skillMastery}</h3>
             </div>
             <div className="flex flex-col gap-4">
               {masteryData.map((m, i) => (
                 <div key={m.subject}>
                   <div className="flex justify-between mb-1.5">
-                    <span className="text-sm font-medium">{m.subject}</span>
+                    <span className="text-sm font-medium">{lang === 'hi' ? m.hiSubject : m.subject}</span>
                     <span className="text-sm font-bold" style={{ color: m.color }}>{m.score}%</span>
                   </div>
                   <div className="progress-bar">
@@ -316,14 +395,14 @@ export default function DashboardPage() {
           </GlassCard>
 
           {/* Recent lessons — spans full */}
-          <GlassCard delay={0.35} className="md:col-span-2 xl:col-span-4">
+          <GlassCard delay={0.35} className="md:col-span-2 xl:col-span-4 p-5">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <BookOpen size={18} style={{ color: 'var(--accent-gold)' }} />
-                <h3 className="font-semibold">Recent Lessons</h3>
+                <h3 className="font-semibold">{t.recentLessons}</h3>
               </div>
               <Link href="/lessons/1" className="text-sm flex items-center gap-1" style={{ color: 'var(--accent-gold)' }}>
-                View all <ChevronRight size={14} />
+                {t.viewAll} <ChevronRight size={14} />
               </Link>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -336,7 +415,7 @@ export default function DashboardPage() {
                   >
                     <div className="text-2xl mb-3">{lesson.icon}</div>
                     <p className="font-semibold text-sm mb-1 leading-tight">{lesson.title}</p>
-                    <span className="badge badge-gold text-[10px] mb-3">{lesson.category}</span>
+                    <span className="badge badge-gold text-[10px] mb-3">{t.categories[lesson.category as keyof typeof t.categories]}</span>
                     <div className="progress-bar mt-3">
                       <motion.div
                         className="progress-fill"
@@ -345,7 +424,7 @@ export default function DashboardPage() {
                         transition={{ duration: 1, delay: 0.15 * i }}
                       />
                     </div>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{lesson.progress}% complete</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{lesson.progress}% {t.complete}</p>
                   </motion.div>
                 </Link>
               ))}

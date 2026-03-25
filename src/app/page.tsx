@@ -6,53 +6,88 @@ import Navbar from '@/components/shared/Navbar'
 import MandalaHero from '@/components/shared/MandalaHero'
 import {
   BookOpen, Brain, Mic, BarChart2, Zap, ChevronRight, Star,
-  Layers, Globe, Award
+  Layers, Globe, Award, Languages
 } from 'lucide-react'
 import GlassCard from '@/components/ui/GlassCard'
 
+const translations = {
+  en: {
+    badge: 'Ancient Language · Futuristic Technology',
+    title1: 'Master',
+    title2: 'with',
+    subtitle: "The world's most advanced Sanskrit learning platform. AI-powered pronunciation grading, adaptive curriculum, and a futuristic immersive experience.",
+    tagline: '"That alone is knowledge which leads to liberation"',
+    beginJourney: 'Begin Your Journey',
+    exploreDashboard: 'Explore Dashboard',
+    stats: {
+      learners: 'Active Learners',
+      roots: 'Sanskrit Roots',
+      accuracy: 'Accuracy Rating',
+      modules: 'Lesson Modules',
+    },
+    featuresTitle: 'Everything You Need to',
+    featuresSubtitle: 'Where ancient linguistic precision meets cutting-edge AI technology.',
+    features: [
+      { title: 'Adaptive Curriculum', desc: 'Reinforcement learning tracks your weak points and dynamically adjusts your lesson path.', badge: 'AI-Powered' },
+      { title: 'Pronunciation AI', desc: 'Real-time audio analysis grades your Sanskrit pronunciation, giving instant phonetic feedback.', badge: 'Real-Time' },
+      { title: 'Smart Analytics', desc: 'Beautiful dashboards visualize your mastery of grammar, vocabulary, and Sandhi rules.', badge: 'Visual' },
+      { title: 'Bento Learning Hub', desc: 'A futuristic, modular dashboard that puts all your progress at a glance.', badge: 'Immersive' },
+      { title: 'Vedic Grammar Engine', desc: "Pāṇini's Ashtadhyayi rules, Sandhi, Samasa — taught with precision and context.", badge: '3000+ Rules' },
+      { title: 'Streak & Rewards', desc: 'Daily streaks, XP points, and achievement badges to keep you motivated on the path.', badge: 'Gamified' },
+    ],
+    previewTitle: 'See the',
+    previewSubtitle: 'Learning Experience',
+    lesson: 'Lesson 3 · Nouns',
+    prev: '← Previous',
+    next: 'Next →',
+    ctaTitle: 'Your Journey Begins Now',
+    ctaSubtitle: 'Join 50,000+ learners on the path to mastering the language of the Vedas.',
+    startFree: 'Start for Free',
+    footer: 'Built with reverence for the ancient language',
+  },
+  hi: {
+    badge: 'प्राचीन भाषा · भविष्यवादी तकनीक',
+    title1: 'संस्कृत',
+    title2: 'में महारथ हासिल करें',
+    subtitle: "दुनिया की सबसे उन्नत संस्कृत सीखने वाली प्लेटफॉर्म। AI-संचालित उच्चारण ग्रेडिंग, अनुकूली पाठ्यक्रम, और एक भविष्यवादी इमर्सिव अनुभव।",
+    tagline: '"ज्ञान वही है जो मुक्ति की ओर ले जाए"',
+    beginJourney: 'अपनी यात्रा शुरू करें',
+    exploreDashboard: 'डैशबोर्ड देखें',
+    stats: {
+      learners: 'सक्रिय शिक्षार्थी',
+      roots: 'संस्कृत मूल',
+      accuracy: 'सटीकता रेटिंग',
+      modules: 'पाठ मॉड्यूल',
+    },
+    featuresTitle: 'संस्कृत में निपुण होने के लिए',
+    featuresSubtitle: 'जहाँ प्राचीन भाषाई सटीकता अत्याधुनिक AI तकनीक से मिलती है।',
+    features: [
+      { title: 'अनुकूली पाठ्यक्रम', desc: 'प्रबलन सीखना आपके कमजोर बिंदुओं को ट्रैक करता है और आपके पाठ पथ को गतिशील रूप से समायोजित करता है।', badge: 'AI-संचालित' },
+      { title: 'उच्चारण AI', desc: 'रीयल-टाइम ऑडियो विश्लेषण आपके संस्कृत उच्चारण को ग्रेड करता है, तत्काल ध्वनिक प्रतिक्रिया देता है।', badge: 'रीयल-टाइम' },
+      { title: 'स्मार्ट एनालिटिक्स', desc: 'सुंदर डैशबोर्ड आपके व्याकरण, शब्दावली और संधि नियमों पर महारत को दर्शाते हैं।', badge: 'दृश्य' },
+      { title: 'बेंटो लर्निंग हब', desc: 'एक भविष्यवादी, मॉड्यूलर डैशबोर्ड जो आपकी सभी प्रगति को एक नज़र में रखता है।', badge: 'इमर्सिव' },
+      { title: 'वैदिक व्याकरण इंजन', desc: 'पाणिनि के अष्टाध्यायी नियम, संधि, समास — सटीकता और संदर्भ के साथ सिखाए गए।', badge: '3000+ नियम' },
+      { title: 'स्ट्रीक और पुरस्कार', desc: 'दैनिक स्ट्रीक, XP अंक, और उपलब्धि बैज जो आपको पथ पर प्रेरित रखें।', badge: 'गेमिफाइड' },
+    ],
+    previewTitle: 'देखें',
+    previewSubtitle: 'सीखने का अनुभव',
+    lesson: 'पाठ 3 · संज्ञा',
+    prev: '← पिछला',
+    next: 'अगला →',
+    ctaTitle: 'आपकी यात्रा अब शुरू होती है',
+    ctaSubtitle: '50,000+ शिक्षार्थियों के साथ वेदों की भाषा में निपुण होने के पथ पर शामिल हों।',
+    startFree: 'मुफ्त में शुरू करें',
+    footer: 'प्राचीन भाषा के प्रति श्रद्धा के साथ निर्मित',
+  }
+}
+
 const features = [
-  {
-    icon: Brain,
-    title: 'Adaptive Curriculum',
-    desc: 'Reinforcement learning tracks your weak points and dynamically adjusts your lesson path.',
-    color: 'var(--accent-gold)',
-    badge: 'AI-Powered',
-  },
-  {
-    icon: Mic,
-    title: 'Pronunciation AI',
-    desc: 'Real-time audio analysis grades your Sanskrit pronunciation, giving instant phonetic feedback.',
-    color: 'var(--accent-orange)',
-    badge: 'Real-Time',
-  },
-  {
-    icon: BarChart2,
-    title: 'Smart Analytics',
-    desc: 'Beautiful dashboards visualize your mastery of grammar, vocabulary, and Sandhi rules.',
-    color: 'var(--accent-cyan)',
-    badge: 'Visual',
-  },
-  {
-    icon: Layers,
-    title: 'Bento Learning Hub',
-    desc: 'A futuristic, modular dashboard that puts all your progress at a glance.',
-    color: '#a78bfa',
-    badge: 'Immersive',
-  },
-  {
-    icon: Globe,
-    title: 'Vedic Grammar Engine',
-    desc: "Pāṇini's Ashtadhyayi rules, Sandhi, Samasa — taught with precision and context.",
-    color: 'var(--accent-gold)',
-    badge: '3000+ Rules',
-  },
-  {
-    icon: Award,
-    title: 'Streak & Rewards',
-    desc: 'Daily streaks, XP points, and achievement badges to keep you motivated on the path.',
-    color: 'var(--accent-orange)',
-    badge: 'Gamified',
-  },
+  { icon: Brain, color: 'var(--accent-gold)' },
+  { icon: Mic, color: 'var(--accent-orange)' },
+  { icon: BarChart2, color: 'var(--accent-cyan)' },
+  { icon: Layers, color: '#a78bfa' },
+  { icon: Globe, color: 'var(--accent-gold)' },
+  { icon: Award, color: 'var(--accent-orange)' },
 ]
 
 const sampleWords = [
@@ -65,14 +100,17 @@ const sampleWords = [
 ]
 
 const stats = [
-  { value: '50,000+', label: 'Active Learners' },
-  { value: '3,976', label: 'Sanskrit Roots' },
-  { value: '98%', label: 'Accuracy Rating' },
-  { value: '150+', label: 'Lesson Modules' },
+  { value: '50,000+', enLabel: 'Active Learners', hiLabel: 'सक्रिय शिक्षार्थी' },
+  { value: '3,976', enLabel: 'Sanskrit Roots', hiLabel: 'संस्कृत मूल' },
+  { value: '98%', enLabel: 'Accuracy Rating', hiLabel: 'सटीकता रेटिंग' },
+  { value: '150+', enLabel: 'Lesson Modules', hiLabel: 'पाठ मॉड्यूल' },
 ]
 
 export default function HomePage() {
   const [isMounted, setIsMounted] = useState(false)
+  const [lang, setLang] = useState<'en' | 'hi'>('en')
+  const t = translations[lang]
+
   useEffect(() => setIsMounted(true), [])
 
   if (!isMounted) return <div className="min-h-screen bg-[var(--bg-deep)]" />
@@ -80,6 +118,17 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen overflow-hidden" suppressHydrationWarning>
       <Navbar />
+
+      {/* Language Toggle Button */}
+      <button
+        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        className="fixed top-24 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/50 transition-all duration-300 group backdrop-blur-md"
+      >
+        <Languages size={18} className="text-cyan-400 group-hover:text-cyan-300" />
+        <span className="text-sm font-medium text-white/80 group-hover:text-white">
+          {lang === 'en' ? 'हिंदी' : 'English'}
+        </span>
+      </button>
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section className="relative pt-[120px] pb-32 px-4 flex flex-col items-center text-center overflow-hidden" style={{ marginTop: '80px' }}>
@@ -123,7 +172,7 @@ export default function HomePage() {
           className="badge badge-gold mb-6 text-xs tracking-widest relative z-10"
         >
           <Star size={10} fill="currentColor" />
-          Ancient Language · Futuristic Technology
+          {t.badge}
         </motion.div>
 
         <motion.h1
@@ -137,10 +186,10 @@ export default function HomePage() {
           className="text-5xl md:text-7xl font-bold leading-[1.1] max-w-4xl mb-6 drop-shadow-2xl relative z-10"
           style={{ textShadow: '0 10px 30px rgba(0,0,0,0.8)' }}
         >
-          Master{' '}
-          <span className="gradient-text-gold text-glow-gold">Sanskrit</span>
-          {' '}with<br />
-          <span className="gradient-text-cosmic">Cyber-Vedic AI</span>
+          {t.title1}{' '}
+          <span className="gradient-text-gold text-glow-gold">{lang === 'hi' ? '' : 'Sanskrit'}</span>
+          {lang === 'hi' ? '' : t.title2}<br />
+          {lang === 'hi' ? t.title2 : <span className="gradient-text-cosmic">Cyber-Vedic AI</span>}
         </motion.h1>
 
         <motion.p
@@ -150,8 +199,7 @@ export default function HomePage() {
           className="text-lg md:text-xl max-w-2xl mb-4"
           style={{ color: 'var(--text-secondary)' }}
         >
-          The world's most advanced Sanskrit learning platform. AI-powered pronunciation grading,
-          adaptive curriculum, and a futuristic immersive experience.
+          {t.subtitle}
         </motion.p>
 
         {/* Sanskrit tagline */}
@@ -165,7 +213,7 @@ export default function HomePage() {
           सा विद्या या विमुक्तये
         </motion.p>
         <p className="text-sm mb-10" style={{ color: 'var(--text-muted)' }}>
-          <em>"That alone is knowledge which leads to liberation"</em>
+          <em>{t.tagline}</em>
         </p>
 
         <motion.div
@@ -176,10 +224,10 @@ export default function HomePage() {
         >
           <Link href="/register" className="btn-primary text-base px-8 py-4">
             <Zap size={18} />
-            Begin Your Journey
+            {t.beginJourney}
           </Link>
           <Link href="/dashboard" className="btn-ghost text-base px-8 py-4">
-            Explore Dashboard
+            {t.exploreDashboard}
             <ChevronRight size={18} />
           </Link>
         </motion.div>
@@ -192,9 +240,9 @@ export default function HomePage() {
       <section className="px-4 py-20 mt-12">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {stats.map((s, i) => (
-            <GlassCard key={s.label} delay={0.1 * i} hover className="text-center py-6">
+            <GlassCard key={s.enLabel} delay={0.1 * i} hover className="text-center py-6">
               <p className="text-3xl font-bold gradient-text-gold mb-1">{s.value}</p>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{s.label}</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{lang === 'hi' ? s.hiLabel : s.enLabel}</p>
             </GlassCard>
           ))}
         </div>
@@ -226,23 +274,24 @@ export default function HomePage() {
             viewport={{ once: true }}
             style={{ marginBottom: '3.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            <span className="badge badge-orange" style={{ marginBottom: '1.5rem' }}>Platform Features</span>
+            <span className="badge badge-orange" style={{ marginBottom: '1.5rem' }}>{lang === 'hi' ? 'प्लेटफॉर्म विशेषताएं' : 'Platform Features'}</span>
             <h2 className="text-4xl md:text-6xl font-black drop-shadow-2xl leading-[1.15]"
               style={{ textShadow: '0 0 40px rgba(245, 166, 35, 0.8), 0 0 80px rgba(245, 166, 35, 0.4)', marginTop: '1rem', marginBottom: '2.5rem', maxWidth: '56rem', textAlign: 'center' }}>
-              Everything You Need to{' '}
+              {t.featuresTitle}{' '}
               <br className="hidden md:block" />
-              <span className="gradient-text-gold">Master Sanskrit</span>
+              <span className="gradient-text-gold">{lang === 'hi' ? 'संस्कृत में निपुण होने के लिए' : 'Master Sanskrit'}</span>
             </h2>
             <p className="text-lg max-w-2xl" style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>
-              Where ancient linguistic precision meets cutting-edge AI technology.
+              {t.featuresSubtitle}
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '3.5rem' }}>
             {features.map((feat, i) => {
               const Icon = feat.icon
+              const featureData = t.features[i]
               return (
-                <GlassCard key={feat.title} delay={0.07 * i} hover className="group">
+                <GlassCard key={featureData.title} delay={0.07 * i} hover className="group">
                   <div className="flex items-start gap-4">
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
@@ -252,11 +301,11 @@ export default function HomePage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-base">{feat.title}</h3>
-                        <span className="badge badge-gold text-[10px] px-2 py-0.5">{feat.badge}</span>
+                        <h3 className="font-semibold text-base">{featureData.title}</h3>
+                        <span className="badge badge-gold text-[10px] px-2 py-0.5">{featureData.badge}</span>
                       </div>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                        {feat.desc}
+                        {featureData.desc}
                       </p>
                     </div>
                   </div>
@@ -276,29 +325,29 @@ export default function HomePage() {
             viewport={{ once: true }}
             style={{ marginBottom: '3.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            <span className="badge badge-cyan" style={{ marginBottom: '1.5rem' }}>Live Preview</span>
+            <span className="badge badge-cyan" style={{ marginBottom: '1.5rem' }}>{lang === 'hi' ? 'लाइव पूर्वावलोकन' : 'Live Preview'}</span>
             <h2 className="text-4xl md:text-6xl font-black drop-shadow-2xl leading-[1.15]"
               style={{ textShadow: '0 0 40px rgba(0, 229, 255, 0.8), 0 0 80px rgba(0, 229, 255, 0.4)', marginTop: '1rem', marginBottom: '2.5rem', maxWidth: '56rem', textAlign: 'center' }}>
-              See the{' '}
+              {t.previewTitle}{' '}
               <br className="hidden md:block" />
-              <span className="gradient-text-cosmic">Learning Experience</span>
+              <span className="gradient-text-cosmic">{t.previewSubtitle}</span>
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-2 items-center" style={{ gap: '4rem' }}>
             {/* Flashcard preview */}
             <GlassCard hover glow="gold" className="min-h-[280px] flex flex-col items-center justify-center text-center md:ml-12 md:mr-8">
-              <p className="badge badge-gold mb-6 text-xs">Lesson 3 · Nouns</p>
+              <p className="badge badge-gold mb-6 text-xs">{t.lesson}</p>
               <p className="devanagari text-6xl mb-4 text-glow-gold" style={{ color: 'var(--accent-gold)' }}>
                 नमस्ते
               </p>
               <p className="text-xl font-semibold mb-2">Namaste</p>
               <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
-                I bow to the divine in you · <em>namaḥ + te</em>
+                {lang === 'hi' ? 'मैं आपके भीतर के दिव्य को प्रणाम करता हूँ' : 'I bow to the divine in you'} · <em>namaḥ + te</em>
               </p>
               <div className="mt-6 flex gap-3">
-                <button className="btn-ghost text-sm py-2 px-4">← Previous</button>
-                <button className="btn-primary text-sm py-2 px-4">Next →</button>
+                <button className="btn-ghost text-sm py-2 px-4">{t.prev}</button>
+                <button className="btn-primary text-sm py-2 px-4">{t.next}</button>
               </div>
             </GlassCard>
 
@@ -345,18 +394,15 @@ export default function HomePage() {
             अथ योगानुशासनम्
           </p>
           <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
-            <em>"Now begins the discipline of yoga" — Yoga Sūtras 1.1</em>
+            <em>{lang === 'hi' ? '"अब योग के अनुशासन की शुरुआत होती है" — योग सूत्र 1.1' : '"Now begins the discipline of yoga" — Yoga Sūtras 1.1'}</em>
           </p>
-          <h2 className="text-4xl font-bold mb-4">Your Journey Begins Now</h2>
+          <h2 className="text-4xl font-bold mb-4">{t.ctaTitle}</h2>
           <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>
-            Join 50,000+ learners on the path to mastering the language of the Vedas.
-          </p>
-          <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
-            <em>Padidin</em>
+            {t.ctaSubtitle}
           </p>
           <Link href="/register" className="btn-primary text-lg px-10 py-4">
             <Zap size={20} />
-            Start for Free
+            {t.startFree}
           </Link>
         </motion.div>
       </section>
@@ -364,9 +410,8 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="text-center py-8" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border-glass)' }}>
         <p className="devanagari text-lg mb-1" style={{ color: 'var(--accent-gold)', opacity: 0.6 }}>ॐ</p>
-        <p className="text-sm">© 2026 SanskritAI · Built with reverence for the ancient language</p>
+        <p className="text-sm"> 2026 {lang === 'hi' ? 'संस्कृतAI' : 'SanskritAI'} · {t.footer}</p>
       </footer>
     </div>
   )
 }
-

@@ -1,10 +1,51 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Navbar from '@/components/shared/Navbar'
 import GlassCard from '@/components/ui/GlassCard'
-import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, Volume2, CheckCircle, XCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RotateCcw, BookOpen, Volume2, CheckCircle, XCircle, Languages } from 'lucide-react'
+
+const translations = {
+  en: {
+    backToDashboard: 'Back to Dashboard',
+    card: 'Card',
+    of: 'of',
+    correct: 'Correct',
+    review: 'Review',
+    clickToReveal: 'Click to reveal explanation',
+    meaning: 'Meaning',
+    example: 'Example:',
+    reviewAgain: 'Review Again',
+    gotIt: 'Got It!',
+    prev: 'Prev',
+    next: 'Next',
+    reset: 'Reset',
+    lessonComplete: 'Lesson Complete!',
+    practiceAgain: 'Practice Again',
+    goToPractice: 'Go to Practice',
+    shabash: 'शाबाश! 🎉'
+  },
+  hi: {
+    backToDashboard: 'डैशबोर्ड पर वापस जाएं',
+    card: 'कार्ड',
+    of: 'का',
+    correct: 'सही',
+    review: 'दोबारा देखें',
+    clickToReveal: 'व्याख्या देखने के लिए क्लिक करें',
+    meaning: 'अर्थ',
+    example: 'उदाहरण:',
+    reviewAgain: 'फिर से देखें',
+    gotIt: 'समझ आ गया!',
+    prev: 'पिछला',
+    next: 'अगला',
+    reset: 'रीसेट',
+    lessonComplete: 'पाठ पूरा हुआ!',
+    practiceAgain: 'फिर से अभ्यास करें',
+    goToPractice: 'अभ्यास पर जाएं',
+    shabash: 'शाबाश! 🎉'
+  }
+}
 
 const lessonData: Record<string, {
   title: string; category: string; level: string;
@@ -40,6 +81,10 @@ const lessonData: Record<string, {
 const defaultLesson = lessonData['1']
 
 export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
+  // Language state
+  const [lang, setLang] = useState<'en' | 'hi'>('en')
+  const t = translations[lang]
+
   // We use a client-side workaround — read id from URL
   // Since this is a client component, we access window.location which works at runtime
   const [lessonId] = useState(() => {
@@ -76,13 +121,27 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
   return (
     <div className="relative min-h-screen">
       <Navbar />
-      <div className="px-4" style={{ paddingTop: '7rem', paddingBottom: '4rem', maxWidth: '72rem', width: '95%', marginLeft: 'auto', marginRight: 'auto' }}>
+      
+      {/* Language Toggle Button */}
+      <button
+        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+        style={{ position: 'fixed', top: '90px', right: '16px', zIndex: 50, display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '9999px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', cursor: 'pointer', transition: 'all 0.3s' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(245,166,35,0.5)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+      >
+        <Languages size={18} style={{ color: '#f5a623' }} />
+        <span style={{ fontSize: '14px', fontWeight: 500, color: lang === 'en' ? 'rgba(255,255,255,0.8)' : '#fff' }}>
+          {lang === 'en' ? 'हिंदी' : 'English'}
+        </span>
+      </button>
+      
+      <div className="px-4 sm:px-6 lg:px-8" style={{ paddingTop: '7rem', paddingBottom: '4rem', maxWidth: '72rem', marginLeft: 'auto', marginRight: 'auto' }}>
 
         {/* Back + title */}
         <Link href="/dashboard" className="inline-flex items-center gap-2 mb-6 text-sm transition-colors"
           style={{ color: 'var(--text-secondary)' }}
         >
-          <ChevronLeft size={16} /> Back to Dashboard
+          <ChevronLeft size={16} /> {t.backToDashboard}
         </Link>
 
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
@@ -92,7 +151,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
           </div>
           <h1 className="text-3xl font-bold">{lesson.title}</h1>
           <p className="mt-1" style={{ color: 'var(--text-secondary)' }}>
-            Card {Math.min(current + 1, total)} of {total}
+            {t.card} {Math.min(current + 1, total)} {t.of} {total}
           </p>
           <div className="progress-bar mt-3 max-w-sm">
             <div className="progress-fill" style={{ width: `${((current + 1) / total) * 100}%` }} />
@@ -103,11 +162,11 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
         <div className="flex gap-4 mb-6">
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle size={16} style={{ color: '#34d399' }} />
-            <span style={{ color: '#34d399' }}>{score.correct} Correct</span>
+            <span style={{ color: '#34d399' }}>{score.correct} {t.correct}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <XCircle size={16} style={{ color: 'var(--accent-orange)' }} />
-            <span style={{ color: 'var(--accent-orange)' }}>{score.wrong} Review</span>
+            <span style={{ color: 'var(--accent-orange)' }}>{score.wrong} {t.review}</span>
           </div>
         </div>
 
@@ -137,7 +196,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
               </p>
               <p className="text-base font-semibold mb-2">{card.trans}</p>
               <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Click to reveal explanation
+                {t.clickToReveal}
               </p>
               <Volume2 size={18} className="mt-4" style={{ color: 'var(--text-muted)' }} />
             </div>
@@ -148,9 +207,9 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
                 borderColor: 'rgba(245,166,35,0.3)', background: 'rgba(20,28,55,0.85)',
               }}
             >
-              <p className="text-sm mb-2 font-semibold" style={{ color: 'var(--accent-gold)' }}>Meaning</p>
+              <p className="text-sm mb-2 font-semibold" style={{ color: 'var(--accent-gold)' }}>{t.meaning}</p>
               <p className="text-base mb-4 font-medium">{card.meaning}</p>
-              <p className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>Example:</p>
+              <p className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>{t.example}</p>
               <p className="devanagari text-lg" style={{ color: 'var(--accent-cyan)' }}>{card.example}</p>
             </div>
           </motion.div>
@@ -170,14 +229,14 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
                 className="btn-ghost flex items-center gap-2 px-6 py-3"
                 style={{ borderColor: 'rgba(255,107,53,0.4)', color: 'var(--accent-orange)' }}
               >
-                <XCircle size={18} /> Review Again
+                <XCircle size={18} /> {t.reviewAgain}
               </button>
               <button
                 onClick={() => next('correct')}
                 className="btn-primary px-6 py-3"
                 style={{ background: 'linear-gradient(135deg, #34d399, #059669)' }}
               >
-                <CheckCircle size={18} /> Got It!
+                <CheckCircle size={18} /> {t.gotIt}
               </button>
             </motion.div>
           )}
@@ -190,31 +249,31 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
             className="btn-ghost py-2 px-4 flex items-center gap-1"
             disabled={current === 0}
           >
-            <ChevronLeft size={16} /> Prev
+            <ChevronLeft size={16} /> {t.prev}
           </button>
           <button onClick={reset} className="btn-ghost py-2 px-4 flex items-center gap-1">
-            <RotateCcw size={14} /> Reset
+            <RotateCcw size={14} /> {t.reset}
           </button>
           <button
             onClick={() => { setCurrent(c => Math.min(c + 1, total - 1)); setFlipped(false) }}
             className="btn-ghost py-2 px-4 flex items-center gap-1"
             disabled={current === total - 1}
           >
-            Next <ChevronRight size={16} />
+            {t.next} <ChevronRight size={16} />
           </button>
         </div>
 
         {/* Completed state */}
         {current === total - 1 && (
           <GlassCard delay={0.1} glow="gold" className="mt-10 text-center">
-            <p className="devanagari text-3xl mb-3" style={{ color: 'var(--accent-gold)' }}>शाबाश! 🎉</p>
-            <h3 className="text-xl font-bold mb-2">Lesson Complete!</h3>
+            <p className="devanagari text-3xl mb-3" style={{ color: 'var(--accent-gold)' }}>{t.shabash}</p>
+            <h3 className="text-xl font-bold mb-2">{t.lessonComplete}</h3>
             <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-              {score.correct} correct · {score.wrong} to review
+              {score.correct} {t.correct.toLowerCase()} · {score.wrong} {t.review.toLowerCase()}
             </p>
             <div className="flex gap-4 justify-center">
-              <button onClick={reset} className="btn-ghost py-2 px-6">Practice Again</button>
-              <Link href="/practice" className="btn-primary py-2 px-6">Go to Practice</Link>
+              <button onClick={reset} className="btn-ghost py-2 px-6">{t.practiceAgain}</button>
+              <Link href="/practice" className="btn-primary py-2 px-6">{t.goToPractice}</Link>
             </div>
           </GlassCard>
         )}
