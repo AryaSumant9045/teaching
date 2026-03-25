@@ -7,6 +7,7 @@ import { Radio, Loader, LogIn, Clock, AlertCircle } from 'lucide-react'
 
 interface LiveStatus {
   isLive: boolean
+  jitsiRoomName?: string
   session?: {
     _id: string
     title: string

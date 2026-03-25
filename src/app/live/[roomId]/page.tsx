@@ -1,305 +1,215 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Loader, ArrowLeft, AlertCircle, Wifi, Languages } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Loader, ArrowLeft, AlertCircle, Wifi } from 'lucide-react'
 
-// Temporarily remove Jitsi import until installed
-// import { JaaSMeeting, JitsiMeeting } from '@jitsi/react-sdk'
-
-const translations = {
-  en: {
-    joining: 'Joining:',
-    couldNotJoin: 'Could not join the class',
-    backToCourses: 'Back to Courses',
-    exit: 'Exit',
-    live: 'LIVE',
-    hosting: '🎙 Hosting',
-    joinedAsStudent: 'Joined as student'
-  },
-  hi: {
-    joining: 'शामिल हो रहे हैं:',
-    couldNotJoin: 'कक्षा में शामिल नहीं हो सके',
-    backToCourses: 'पाठ्यक्रमों पर वापस जाएं',
-    exit: 'बाहर निकलें',
-    live: 'लाइव',
-    hosting: '🎙 होस्ट कर रहे हैं',
-    joinedAsStudent: 'छात्र के रूप में शामिल हुए'
-  }
+declare global {
+  interface Window { JitsiMeetExternalAPI: any }
 }
 
-type Phase = 'loading' | 'ready' | 'error'
+// Default to free meet.jit.si — no API key required.
+// To use paid 8x8.vc JaaS, set NEXT_PUBLIC_JITSI_DOMAIN=8x8.vc and NEXT_PUBLIC_JITSI_APP_ID in .env.local
+const JITSI_DOMAIN =
+  (typeof window !== 'undefined' && (window as any).__jitsiDomain) ||
+  process.env.NEXT_PUBLIC_JITSI_DOMAIN ||
+  'meet.jit.si'
+
+const JITSI_APP_ID = process.env.NEXT_PUBLIC_JITSI_APP_ID ?? ''
+
+type Phase = 'loadingScript' | 'ready' | 'error'
 
 export default function JitsiMeetingRoom() {
+  const params = useParams<{ roomId: string }>()
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session } = useSession()
-  
-  const roomId = searchParams.get('roomId')
+
+  const roomId = decodeURIComponent(params.roomId ?? '')
   const title = searchParams.get('title') ?? 'Live Class'
   const role = searchParams.get('role') ?? 'participant'
-  const userName = searchParams.get('name') ?? session?.user?.name ?? 'User'
+  const userName = searchParams.get('name') ?? session?.user?.name ?? 'Student'
+  const userEmail = session?.user?.email ?? ''
 
-  const [phase, setPhase] = useState<Phase>('loading')
+  const [phase, setPhase] = useState<Phase>('loadingScript')
   const [error, setError] = useState('')
-  const [lang, setLang] = useState<'en' | 'hi'>('en')
-  const t = translations[lang]
+  const jitsiContainerRef = useRef<HTMLDivElement>(null)
+  const apiRef = useRef<any>(null)
+  const scriptLoaded = useRef(false)
 
+  // ── Step 1: Load Jitsi external_api.js script ──────────────────────────────
   useEffect(() => {
     if (!roomId) {
       setError('No room ID provided.')
       setPhase('error')
       return
     }
-    setPhase('ready')
+
+    // If already on page (hot-reload), skip
+    if (document.getElementById('jitsi-api-script') && window.JitsiMeetExternalAPI) {
+      scriptLoaded.current = true
+      setPhase('ready') // DOM container will render; Step 2 useEffect mounts Jitsi
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = 'jitsi-api-script'
+    script.src = `https://${JITSI_DOMAIN}/external_api.js`
+    script.async = true
+    script.onload = () => {
+      scriptLoaded.current = true
+      setPhase('ready') // Trigger re-render so jitsiContainerRef.current becomes valid
+    }
+    script.onerror = () => {
+      setError(`Failed to load Jitsi meeting SDK from ${JITSI_DOMAIN}`)
+      setPhase('error')
+    }
+    document.head.appendChild(script)
+
+    return () => {
+      if (apiRef.current) {
+        try { apiRef.current.dispose() } catch (_) {}
+        apiRef.current = null
+      }
+    }
   }, [roomId])
 
-  // Jitsi configuration based on user role
-  const configOverwrite = role === 'host' ? {
-    startWithAudioMuted: false,
-    startWithVideoMuted: false,
-    preJoinPageEnabled: false,
-    enableWelcomePage: false,
-    enableRecording: true,
-    dropbox: {
-      appKey: process.env.NEXT_PUBLIC_JITSI_DROPBOX_APP_KEY
-    },
-    liveStreaming: {
-      enabled: true,
-      youtubeStreamKey: process.env.NEXT_PUBLIC_YOUTUBE_STREAM_KEY
-    },
-    subject: title,
-    displayName: userName
-  } : {
-    startWithAudioMuted: true,
-    startWithVideoMuted: true,
-    preJoinPageEnabled: false,
-    enableWelcomePage: false,
-    enableRecording: false,
-    disableModeratorIndicator: true,
-    disableSelfView: false,
-    disableRemoteMute: true,
-    disableRemoteControls: true,
-    subject: title,
-    displayName: userName
-  }
+  // ── Step 2: Mount Jitsi AFTER DOM has rendered the container ───────────────
+  // This runs AFTER phase='ready' causes the container div to appear in the DOM
+  useEffect(() => {
+    if (phase !== 'ready' || apiRef.current) return
 
-  const interfaceConfigOverwrite = {
-    TOOLBAR_BUTTONS: role === 'host' 
-      ? [
-          'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-          'fodeviceselection', 'hangup', 'profile', 'info', 'chat',
-          'recording', 'livestreaming', 'etherpad', 'sharedvideo', 'settings',
-          'raisehand', 'videoquality', 'filmstrip', 'tileview', 'e2ee',
-          'download', 'help', 'mute-everyone', 'security'
-        ]
-      : [
-          'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-          'fodeviceselection', 'hangup', 'profile', 'chat', 'raisehand',
-          'videoquality', 'filmstrip', 'tileview', 'settings', 'help'
-        ],
-    SETTINGS_SECTIONS: role === 'host' 
-      ? ['devices', 'language', 'moderator', 'profile', 'calendar']
-      : ['devices', 'language', 'profile'],
-    SHOW_CHROMETAB_BAR: false
-  }
+    // Small delay to ensure React has flushed the DOM update
+    const timer = setTimeout(() => {
+      if (!jitsiContainerRef.current || !window.JitsiMeetExternalAPI) {
+        setError('Jitsi container not ready. Please refresh.')
+        setPhase('error')
+        return
+      }
 
-  const userInfo = {
-    displayName: userName,
-    email: session?.user?.email || ''
-  }
+      const fullRoomName = JITSI_APP_ID
+        ? `${JITSI_APP_ID}/${roomId}`
+        : roomId
 
-  if (phase === 'loading') {
+      const toolbarButtons = role === 'host'
+        ? ['microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+            'fodeviceselection', 'hangup', 'profile', 'chat',
+            'recording', 'settings', 'raisehand', 'videoquality',
+            'filmstrip', 'tileview', 'download', 'help', 'mute-everyone', 'security']
+        : ['microphone', 'camera', 'fullscreen', 'fodeviceselection',
+            'hangup', 'profile', 'chat', 'raisehand', 'videoquality', 'tileview', 'filmstrip']
+
+      try {
+        apiRef.current = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
+          roomName: fullRoomName,
+          parentNode: jitsiContainerRef.current,
+          width: '100%',
+          height: '100%',
+          userInfo: { displayName: userName, email: userEmail },
+          configOverwrite: {
+            startWithAudioMuted: role !== 'host',
+            startWithVideoMuted: role !== 'host',
+            prejoinPageEnabled: false,
+            enableWelcomePage: false,
+            disableDeepLinking: true,
+            subject: title,
+            toolbarButtons,
+          },
+          interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            TOOLBAR_ALWAYS_VISIBLE: true,
+            MOBILE_APP_PROMO: false,
+          },
+          ...(JITSI_APP_ID && process.env.NEXT_PUBLIC_JITSI_JWT
+            ? { jwt: process.env.NEXT_PUBLIC_JITSI_JWT }
+            : {}),
+        })
+
+        apiRef.current.on('readyToClose', () => {
+          router.push(role === 'host' ? '/admin/courses' : '/courses')
+        })
+      } catch (e: any) {
+        setError(`Could not start meeting: ${e.message}`)
+        setPhase('error')
+      }
+    }, 100) // 100ms ensures React has committed the DOM
+
+    return () => clearTimeout(timer)
+  }, [phase]) // only re-run when phase changes to 'ready'
+
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (phase === 'loadingScript') {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-deep)', gap: '16px' }}>
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#060914', gap: '16px' }}>
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <Loader size={32} style={{ color: 'var(--accent-gold)' }} />
+          <Loader size={32} style={{ color: '#f5a623' }} />
         </motion.div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>{t.joining} <strong style={{ color: 'var(--accent-gold)' }}>{title}</strong></p>
+        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '15px' }}>
+          Joining: <strong style={{ color: '#f5a623' }}>{title}</strong>
+        </p>
+        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>
+          Loading meeting SDK…
+        </p>
       </div>
     )
   }
 
+  // ── Error ──────────────────────────────────────────────────────────────────
   if (phase === 'error') {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-deep)', gap: '20px', padding: '40px' }}>
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#060914', gap: '20px', padding: '40px' }}>
         <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(255,107,53,0.15)', border: '1px solid rgba(255,107,53,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <AlertCircle size={24} style={{ color: '#ff6b35' }} />
         </div>
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ margin: '0 0 8px' }}>{t.couldNotJoin}</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: 0 }}>{error}</p>
+          <h2 style={{ margin: '0 0 8px', color: 'white' }}>Could not join the class</h2>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', maxWidth: '400px', margin: 0 }}>{error}</p>
         </div>
         <button
           onClick={() => router.push(role === 'host' ? '/admin/courses' : '/courses')}
-          style={{ padding: '10px 24px', borderRadius: '10px', background: 'var(--accent-gold)', color: '#0a0a0a', fontWeight: 700, textDecoration: 'none', fontSize: '14px', border: 'none', cursor: 'pointer' }}
+          style={{ padding: '10px 24px', borderRadius: '10px', background: '#f5a623', color: '#0a0a0a', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer' }}
         >
-          {t.backToCourses}
+          Back to Courses
         </button>
       </div>
     )
   }
 
+  // ── Ready: Jitsi mounts into jitsiContainerRef ─────────────────────────────
   return (
-    <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
-      {/* Language Toggle Button */}
-      <button
-        onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-        style={{
-          position: 'absolute',
-          top: '60px',
-          right: '16px',
-          zIndex: 200,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 16px',
-          borderRadius: '9999px',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          backdropFilter: 'blur(12px)',
-          cursor: 'pointer',
-          transition: 'all 0.3s'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-          e.currentTarget.style.borderColor = 'rgba(255,107,53,0.5)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-        }}
-      >
-        <Languages size={18} style={{ color: '#ff6b35' }} />
-        <span style={{ fontSize: '14px', fontWeight: 500, color: lang === 'en' ? 'rgba(255,255,255,0.8)' : '#fff' }}>
-          {lang === 'en' ? 'हिंदी' : 'English'}
-        </span>
-      </button>
-
-      {/* Header Bar */}
+    <div style={{ height: '100vh', width: '100%', position: 'relative', background: '#000' }}>
+      {/* Top header bar — non-blocking */}
       <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        padding: '10px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        background: 'rgba(6,9,20,0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,107,53,0.3)'
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
+        padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '12px',
+        background: 'rgba(6,9,20,0.9)', backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,107,53,0.3)',
       }}>
         <button
           onClick={() => router.push(role === 'host' ? '/admin/courses' : '/courses')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            color: 'var(--text-muted)',
-            textDecoration: 'none',
-            fontSize: '13px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px' }}
         >
-          <ArrowLeft size={14} /> {t.exit}
+          <ArrowLeft size={14} /> Exit
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity }}
             style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff6b35' }} />
-          <span style={{ fontSize: '13px', color: '#ff6b35', fontWeight: 700 }}>{t.live}</span>
+          <span style={{ fontSize: '13px', color: '#ff6b35', fontWeight: 700 }}>LIVE</span>
         </div>
-        <span style={{ fontSize: '14px', fontWeight: 600 }}>{title}</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
-          <Wifi size={13} style={{ color: '#ff6b35' }} /> {role === 'host' ? t.hosting : t.joinedAsStudent}
-        </div>
-      </div>
-
-      {/* Jitsi Meeting */}
-      <div style={{ 
-        position: 'absolute',
-        top: '50px',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        height: 'calc(100vh - 50px)',
-        background: '#000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
-        <div style={{ 
-          padding: '40px', 
-          borderRadius: '16px', 
-          background: 'rgba(255,255,255,0.1)', 
-          border: '1px solid rgba(255,255,255,0.2)',
-          textAlign: 'center',
-          maxWidth: '500px'
-        }}>
-          <h3 style={{ color: '#ff6b35', margin: '0 0 20px', fontSize: '24px' }}>
-            🎥 Jitsi Live Class
-          </h3>
-          <p style={{ color: 'white', margin: '0 0 20px', fontSize: '16px' }}>
-            Room: <strong>{roomId}</strong>
-          </p>
-          <p style={{ color: 'white', margin: '0 0 20px', fontSize: '16px' }}>
-            Title: <strong>{title}</strong>
-          </p>
-          <p style={{ color: 'rgba(255,255,255,0.7)', margin: '0 0 20px', fontSize: '14px' }}>
-            Role: <strong>{role}</strong> | User: <strong>{userName}</strong>
-          </p>
-          <div style={{ 
-            padding: '20px', 
-            borderRadius: '12px', 
-            background: 'rgba(255,107,53,0.2)', 
-            border: '1px solid rgba(255,107,53,0.4)',
-            margin: '20px 0'
-          }}>
-            <p style={{ color: '#ff6b35', margin: 0, fontSize: '14px', fontWeight: 600 }}>
-              🔧 Jitsi SDK Installation Required
-            </p>
-            <p style={{ color: 'white', margin: '10px 0 0', fontSize: '13px' }}>
-              Please install the Jitsi SDK to enable live video functionality:
-            </p>
-            <code style={{ 
-              display: 'block', 
-              background: 'rgba(0,0,0,0.3)', 
-              padding: '10px', 
-              borderRadius: '8px', 
-              color: '#00e5ff', 
-              fontSize: '12px',
-              margin: '10px 0'
-            }}>
-              npm install @jitsi/react-sdk
-            </code>
-          </div>
-          <button
-            onClick={() => router.push(role === 'host' ? '/admin/courses' : '/courses')}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #ff6b35, #f5a623)',
-              color: '#0a0a0a',
-              fontWeight: 700,
-              fontSize: '14px',
-              cursor: 'pointer',
-              border: 'none'
-            }}
-          >
-            Go Back
-          </button>
+        <span style={{ fontSize: '14px', fontWeight: 600, color: 'white' }}>{title}</span>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+          <Wifi size={13} style={{ color: '#ff6b35' }} />
+          {role === 'host' ? '🎙 Hosting' : 'Joined as student'}
         </div>
       </div>
 
-      {/* Hidden container for Jitsi iframe */}
-      <div id="jitsi-container" style={{ display: 'none' }} />
+      {/* Jitsi mounts here — this div MUST exist before initJitsi() runs */}
+      <div
+        ref={jitsiContainerRef}
+        style={{ position: 'absolute', top: '44px', left: 0, right: 0, bottom: 0 }}
+      />
     </div>
   )
 }

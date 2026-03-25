@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { LiveSessionModel, EnrollmentModel, PurchaseModel } from '@/lib/models'
+import { LiveSessionModel, EnrollmentModel, PurchaseModel, Course } from '@/lib/models'
 import { connectDB } from '@/lib/mongodb'
 
 // GET /api/courses/:courseId/live-status
@@ -10,45 +10,37 @@ export async function GET(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    // 1. Authenticate user
     const session = await auth()
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized', isLive: false }, { status: 401 })
     }
 
     const userId = session.user.id
-    const userName = session.user.name || 'Student'
     const { courseId } = await params
+    const isAdmin = session.user.role === 'admin'
 
     if (!courseId) {
-      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+      return NextResponse.json({ error: 'Course ID required', isLive: false }, { status: 400 })
     }
 
     await connectDB()
 
-    // 2. Check if user is enrolled in the course
-    // Check both Enrollment model and Purchase model (for backward compatibility)
-    const enrollment = await EnrollmentModel.findOne({ 
-      userId, 
-      courseId,
-      status: 'active'
-    })
+    // Admins and free-course students can always check live status.
+    // Paid-course students must have an enrollment or purchase record.
+    if (!isAdmin) {
+      const course = await Course().findById(courseId).lean()
+      const isFree = !course || (course as any).isFree !== false // default free
 
-    const purchase = await PurchaseModel.findOne({
-      userId,
-      resourceId: courseId,
-      resourceType: 'course',
-      status: 'completed'
-    })
-
-    const isEnrolled = !!enrollment || !!purchase
-
-    if (!isEnrolled) {
-      return NextResponse.json({ 
-        error: 'You are not enrolled in this course',
-        isLive: false 
-      }, { status: 403 })
+      if (!isFree) {
+        const enrollment = await EnrollmentModel.findOne({ userId, courseId, status: 'active' })
+        const purchase = await PurchaseModel.findOne({ userId, resourceId: courseId, resourceType: 'course', status: 'completed' })
+        if (!enrollment && !purchase) {
+          // Return gracefully — don't hard 403, just say not live
+          return NextResponse.json({ isLive: false, message: 'Not enrolled' })
+        }
+      }
     }
+
 
     // 3. Query for active live session
     const liveSession = await LiveSessionModel.findOne({

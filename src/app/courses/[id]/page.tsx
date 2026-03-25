@@ -159,9 +159,23 @@ export default function CourseDetailPage() {
   }
 
   const joinLive = (lec: Lecture) => {
-    const meetingId = localStorage.getItem(`dyte_meeting_${lec._id}`)
-    if (meetingId) router.push(`/live?meetingId=${meetingId}&title=${encodeURIComponent(lec.title)}&role=participant`)
-    else if (lec.liveClass?.meetingUrl) window.open(lec.liveClass.meetingUrl, '_blank')
+    // Navigate to the active Jitsi live session for this course
+    // Fetch the jitsiRoomName from the live-status API
+    if (!id) return
+    fetch(`/api/courses/${id}/live-status`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.isLive && data.jitsiRoomName) {
+          router.push(`/live/${encodeURIComponent(data.jitsiRoomName)}?title=${encodeURIComponent(lec.title)}&role=participant`)
+        } else if (lec.liveClass?.meetingUrl) {
+          window.open(lec.liveClass.meetingUrl, '_blank')
+        } else {
+          alert('Live session not active yet. Please try again shortly.')
+        }
+      })
+      .catch(() => {
+        if (lec.liveClass?.meetingUrl) window.open(lec.liveClass.meetingUrl, '_blank')
+      })
   }
 
   const liveNow = lectures.find(l => l.liveClass?.isLive)
@@ -400,14 +414,14 @@ export default function CourseDetailPage() {
           {activeLec ? (
             <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-              {/* Live Class Banner for Enrolled Students */}
-              {isPurchased && course && userId && (
+              {/* Live Class Banner — show for all logged-in users */}
+              {session?.user && course && (
                 <div style={{ marginBottom: '24px' }}>
                   <LiveClassStatus 
                     courseId={course._id}
                     courseTitle={course.title}
                     userName={session?.user?.name || 'Student'}
-                    userId={userId}
+                    userId={userId || session.user.id || ''}
                   />
                 </div>
               )}
@@ -484,7 +498,7 @@ export default function CourseDetailPage() {
                   </div>
                   {activeLec.liveClass.isLive ? (
                     <button onClick={() => joinLive(activeLec)} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 20px', borderRadius: '10px', background: 'linear-gradient(135deg, #ff6b35, #f5a623)', color: '#0a0a0a', fontWeight: 800, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
-                      <Wifi size={14} /> Join Live via Dyte
+                      <Wifi size={14} /> Join Live
                     </button>
                   ) : activeLec.liveClass.meetingUrl ? (
                     <a href={activeLec.liveClass.meetingUrl} target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', borderRadius: '10px', background: 'rgba(255,255,255,0.08)', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 700, fontSize: '13px' }}>

@@ -32,7 +32,7 @@ export default function LecturesAdminPage() {
   const [form, setForm] = useState<Partial<Lecture>>({})
   const [hasLive, setHasLive] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [dyteLoading, setDyteLoading] = useState<string | null>(null)
+  const [liveLoading, setLiveLoading] = useState<string | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -98,37 +98,48 @@ export default function LecturesAdminPage() {
   }
 
   const startJitsiLive = async (lec: Lecture) => {
-    setDyteLoading(lec._id)
+    setLiveLoading(lec._id)
     try {
-      // Create a live session with Jitsi
-      const sessionRes = await fetch('/api/sessions/schedule', {
+      // 1. Schedule a live session (creates jitsiRoomName in DB)
+      const scheduleRes = await fetch('/api/sessions/schedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          courseId: courseId, // Use courseId from URL params
+          courseId,
           title: lec.title,
-          scheduledAt: new Date().toISOString()
-        })
+          scheduledAt: new Date().toISOString(),
+        }),
       })
-      
-      const sessionData = await sessionRes.json()
-      if (sessionData.error) throw new Error(sessionData.error)
-      
-      // Start the session immediately
-      const startRes = await fetch(`/api/sessions/${sessionData.session._id}/start`, {
-        method: 'POST'
-      })
-      
+      const scheduleData = await scheduleRes.json()
+      if (!scheduleRes.ok) throw new Error(scheduleData.error || 'Failed to schedule session')
+
+      const sessionId = scheduleData.session._id
+      const jitsiRoomName = scheduleData.session.jitsiRoomName
+
+      // 2. Start the session immediately (marks status: 'active')
+      const startRes = await fetch(`/api/sessions/${sessionId}/start`, { method: 'POST' })
       const startData = await startRes.json()
-      if (startData.error) throw new Error(startData.error)
-      
-      // Navigate to Jitsi room
-      router.push(`/live/${sessionData.session.jitsiRoomName}?title=${encodeURIComponent(lec.title)}&role=host`)
-    } catch (e: any) { 
-      alert(`Go Live failed: ${e.message}`) 
-    }
-    finally { 
-      setDyteLoading(null) 
+      if (!startRes.ok) throw new Error(startData.error || 'Failed to start session')
+
+      // 3. Mark lecture liveClass.isLive = true so students see the "Join Live" banner
+      await fetch(`/api/lectures/${lec._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isLive: true }),
+      })
+      setLectures(ls => ls.map(l =>
+        l._id === lec._id && l.liveClass
+          ? { ...l, liveClass: { ...l.liveClass, isLive: true } }
+          : l
+      ))
+      setHasLive(true)
+
+      // 4. Navigate admin to Jitsi room as host
+      router.push(`/live/${encodeURIComponent(jitsiRoomName)}?title=${encodeURIComponent(lec.title)}&role=host`)
+    } catch (e: any) {
+      alert(`Go Live failed: ${e.message}`)
+    } finally {
+      setLiveLoading(null)
     }
   }
 
@@ -230,10 +241,10 @@ export default function LecturesAdminPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
-                <button onClick={() => startJitsiLive(lec)} disabled={!!dyteLoading}
-                  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '8px', background: 'linear-gradient(135deg, #ff6b35, #f5a623)', color: '#0a0a0a', border: 'none', cursor: dyteLoading ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 700, opacity: dyteLoading === lec._id ? 0.7 : 1 }}>
-                  {dyteLoading === lec._id ? <Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={11} />}
-                  {dyteLoading === lec._id ? 'Starting…' : 'Go Live Now'}
+                <button onClick={() => startJitsiLive(lec)} disabled={!!liveLoading}
+                  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '8px', background: 'linear-gradient(135deg, #ff6b35, #f5a623)', color: '#0a0a0a', border: 'none', cursor: liveLoading ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 700, opacity: liveLoading === lec._id ? 0.7 : 1 }}>
+                  {liveLoading === lec._id ? <Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={11} />}
+                  {liveLoading === lec._id ? 'Starting…' : 'Go Live Now'}
                 </button>
                 <button onClick={() => openEdit(lec)} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '12px' }}>
                   <Edit2 size={11} /> Edit
