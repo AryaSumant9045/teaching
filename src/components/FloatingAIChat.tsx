@@ -4,7 +4,7 @@ import { Sparkles, X, Send, Loader } from 'lucide-react'
 import { askAI } from '@/lib/aiService'
 
 export default function FloatingAIChat() {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [response, setResponse] = useState('नमस्ते! मैं Sutra-AI हूं। संस्कृत या UGC NET से संबंधित प्रश्न पूछें।')
   const [loading, setLoading] = useState(false)
